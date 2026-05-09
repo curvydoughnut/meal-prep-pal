@@ -157,8 +157,9 @@ function RecipeIdeasPage() {
                 />
               </div>
               <div className="p-5">
-                <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-primary">
-                  {r.diet}
+                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{r.meal}</span>
+                  <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-primary">{r.diet}</span>
                 </div>
                 <h3 className="text-lg font-semibold tracking-tight">{r.title}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.desc}</p>
