@@ -16,25 +16,28 @@ const SYSTEMS: Record<string, (d: Duration) => string> = {
   plan: (d) => `You are PrepPal, a friendly AI meal-prep coach. Build practical weekly meal plans tailored to the user's diet, time, budget, and goals.
 ${DURATION_HINT[d]}
 
-ALWAYS call the \`generateMealImage\` tool FIRST with a short visual description of the hero dish before writing the plan.
+ALWAYS call the \`generateMealImage\` tool FIRST with a short visual description of the hero dish.
+THEN call the \`setShoppingList\` tool with the FULL grocery list grouped by aisle, EXCLUDING anything the user already has in their pantry (see Pantry context). Quantities should reflect what the user still needs to buy.
 
 Then respond in clean Markdown with:
 - A short intro
 - Day-by-day meals (with calorie/macro estimates when relevant)
-- A consolidated grocery list grouped by aisle (produce, protein, pantry, dairy)
-- Prep & storage tips appropriate for the chosen duration`,
+- Note which pantry items you reused
+- Prep & storage tips appropriate for the chosen duration
+(Do NOT repeat the full shopping list in markdown — the UI renders it from \`setShoppingList\`.)`,
 
   recipe: (d) => `You are PrepPal, a creative AI recipe generator focused on meal-prep friendly dishes.
 ${DURATION_HINT[d]}
 
-ALWAYS call the \`generateMealImage\` tool FIRST with a short, vivid visual description of the finished dish (plating, colors, lighting) before writing anything else.
+ALWAYS call the \`generateMealImage\` tool FIRST with a short, vivid visual description of the finished dish.
+If the user is missing ingredients, also call \`setShoppingList\` with what they need to buy (grouped by aisle), excluding pantry items.
 
 Then respond in clean Markdown with this exact structure:
 ## {Catchy dish name}
 **Servings:** X · **Total time:** X min
 
 ### Ingredients
-- bullet list with quantities
+- bullet list with quantities (mark pantry items with "(have)")
 
 ### Step-by-step
 1. numbered steps, concise and clear
@@ -85,6 +88,7 @@ export const Route = createFileRoute("/api/chat")({
           messages?: UIMessage[];
           mode?: "plan" | "recipe";
           duration?: Duration;
+          pantry?: string[];
         };
         if (!Array.isArray(body.messages)) return new Response("messages required", { status: 400 });
 
@@ -95,6 +99,10 @@ export const Route = createFileRoute("/api/chat")({
         const model = gateway("google/gemini-3-flash-preview");
         const mode = body.mode === "recipe" ? "recipe" : "plan";
         const duration: Duration = body.duration ?? "few-days";
+        const pantry = Array.isArray(body.pantry) ? body.pantry.filter(Boolean) : [];
+        const pantryNote = pantry.length
+          ? `\n\nPantry context — the user ALREADY HAS these ingredients on hand. Do not add them to the shopping list and reduce quantities accordingly:\n- ${pantry.join("\n- ")}`
+          : "\n\nPantry context: the user has not listed any pantry items.";
 
         const tools = {
           generateMealImage: tool({
@@ -108,11 +116,30 @@ export const Route = createFileRoute("/api/chat")({
               return { success: true as const, image: dataUrl, prompt };
             },
           }),
+          setShoppingList: tool({
+            description: "Emit the structured shopping list the user still needs to buy, grouped by aisle. Exclude pantry items.",
+            inputSchema: z.object({
+              title: z.string().describe("Short title, e.g. 'Weekly grocery list'."),
+              groups: z.array(
+                z.object({
+                  aisle: z.string().describe("Aisle name: Produce, Protein, Pantry, Dairy, Frozen, Other."),
+                  items: z.array(
+                    z.object({
+                      name: z.string(),
+                      qty: z.string().optional().describe("Quantity, e.g. '2 lbs' or '1 bunch'."),
+                      note: z.string().optional(),
+                    }),
+                  ),
+                }),
+              ),
+            }),
+            execute: async (input) => ({ success: true as const, ...input }),
+          }),
         };
 
         const result = streamText({
           model,
-          system: SYSTEMS[mode](duration),
+          system: SYSTEMS[mode](duration) + pantryNote,
           tools,
           stopWhen: stepCountIs(50),
           messages: await convertToModelMessages(body.messages),

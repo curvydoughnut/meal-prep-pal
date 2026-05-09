@@ -3,18 +3,30 @@ import type { UIMessage } from "ai";
 
 export type Mode = "plan" | "recipe";
 export type ThreadMeta = { id: string; title: string; mode: Mode; updated_at: string };
-type Stored = { threads: ThreadMeta[]; messages: Record<string, UIMessage[]> };
+type Stored = {
+  threads: ThreadMeta[];
+  messages: Record<string, UIMessage[]>;
+  pantry: string[];
+  /** keyed by `${threadId}:${itemKey}` */
+  checked: Record<string, boolean>;
+};
 
 const KEY = "preppal:store:v1";
 
 function read(): Stored {
-  if (typeof window === "undefined") return { threads: [], messages: {} };
+  if (typeof window === "undefined") return { threads: [], messages: {}, pantry: [], checked: {} };
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { threads: [], messages: {} };
-    return JSON.parse(raw) as Stored;
+    if (!raw) return { threads: [], messages: {}, pantry: [], checked: {} };
+    const parsed = JSON.parse(raw) as Partial<Stored>;
+    return {
+      threads: parsed.threads ?? [],
+      messages: parsed.messages ?? {},
+      pantry: parsed.pantry ?? [],
+      checked: parsed.checked ?? {},
+    };
   } catch {
-    return { threads: [], messages: {} };
+    return { threads: [], messages: {}, pantry: [], checked: {} };
   }
 }
 
@@ -79,4 +91,44 @@ export function subscribe(cb: () => void): () => void {
     window.removeEventListener("preppal:store", cb);
     window.removeEventListener("storage", cb);
   };
+}
+
+// ---------- Pantry ----------
+export function getPantry(): string[] {
+  return read().pantry;
+}
+
+export function setPantry(items: string[]) {
+  const s = read();
+  s.pantry = items;
+  write(s);
+}
+
+export function addPantryItem(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const s = read();
+  if (!s.pantry.some((x) => x.toLowerCase() === trimmed.toLowerCase())) {
+    s.pantry = [...s.pantry, trimmed];
+    write(s);
+  }
+}
+
+export function removePantryItem(name: string) {
+  const s = read();
+  s.pantry = s.pantry.filter((x) => x !== name);
+  write(s);
+}
+
+// ---------- Shopping list checks ----------
+export function isChecked(threadId: string, key: string): boolean {
+  return !!read().checked[`${threadId}:${key}`];
+}
+
+export function toggleChecked(threadId: string, key: string) {
+  const s = read();
+  const k = `${threadId}:${key}`;
+  if (s.checked[k]) delete s.checked[k];
+  else s.checked[k] = true;
+  write(s);
 }
