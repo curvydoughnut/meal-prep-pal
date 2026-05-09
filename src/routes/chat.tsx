@@ -134,12 +134,12 @@ function ChatPage() {
   return (
     <div className="flex h-screen bg-[image:var(--gradient-soft)]">
       <aside className="hidden w-72 flex-col border-r border-sidebar-border/60 bg-sidebar/70 backdrop-blur-xl md:flex">
-        <div className="flex items-center gap-2.5 px-5 py-5">
+        <Link to="/" className="flex items-center gap-2.5 px-5 py-5 transition-opacity hover:opacity-80">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)] text-primary-foreground shadow-[var(--shadow-soft)]">
             <ChefHat className="h-4.5 w-4.5" />
           </div>
           <span className="font-semibold tracking-tight">PrepPal</span>
-        </div>
+        </Link>
         <div className="px-3">
           <Button onClick={newChat} className="w-full rounded-xl shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]" variant="default">
             <Plus className="mr-2 h-4 w-4" /> New chat
