@@ -11,6 +11,8 @@ import glutenFree from "@/assets/recipes/gluten-free-zoodles.jpg";
 import vegetarian from "@/assets/recipes/vegetarian-oats.jpg";
 import paleo from "@/assets/recipes/paleo-steak.jpg";
 import pescatarian from "@/assets/recipes/pescatarian-poke.jpg";
+import antiInflammatorySoup from "@/assets/recipes/anti-inflammatory-soup.jpg";
+import antiInflammatorySalad from "@/assets/recipes/anti-inflammatory-salad.jpg";
 
 export const Route = createFileRoute("/recipe-ideas")({
   component: RecipeIdeasPage,
@@ -24,7 +26,7 @@ export const Route = createFileRoute("/recipe-ideas")({
   }),
 });
 
-type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian";
+type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory";
 
 type Recipe = {
   title: string;
@@ -45,9 +47,11 @@ const RECIPES: Recipe[] = [
   { title: "Berry Almond Oats", diet: "Vegetarian", desc: "Creamy oats, mixed berries, banana, almonds, honey.", time: "10 min", kcal: "380 kcal", image: vegetarian, prompt: "Step-by-step vegetarian breakfast oatmeal recipe with berries, banana, almonds and honey — 1 serving." },
   { title: "Herb Steak & Sweet Potato", diet: "Paleo", desc: "Seared steak strips, roasted sweet potato, sautéed spinach.", time: "30 min", kcal: "590 kcal", image: paleo, prompt: "Step-by-step paleo herb steak recipe with roasted sweet potato cubes and sautéed spinach — 2 servings." },
   { title: "Mango Shrimp Poke Bowl", diet: "Pescatarian", desc: "Shrimp, sushi rice, mango, edamame, cucumber, sesame.", time: "25 min", kcal: "510 kcal", image: pescatarian, prompt: "Step-by-step pescatarian shrimp poke bowl recipe with sushi rice, mango, edamame, cucumber, avocado, and sesame — 2 servings." },
+  { title: "Turmeric Ginger Lentil Soup", diet: "Anti-inflammatory", desc: "Lentils, turmeric, ginger, kale, carrots, coconut milk.", time: "35 min", kcal: "390 kcal", image: antiInflammatorySoup, prompt: "Step-by-step anti-inflammatory turmeric ginger lentil soup recipe with kale, carrots, and coconut milk — 4 servings." },
+  { title: "Salmon Avocado Power Salad", diet: "Anti-inflammatory", desc: "Salmon, avocado, leafy greens, walnuts, blueberries, olive oil.", time: "20 min", kcal: "470 kcal", image: antiInflammatorySalad, prompt: "Step-by-step anti-inflammatory salmon and avocado salad recipe with leafy greens, walnuts, blueberries, and olive oil dressing — 2 servings." },
 ];
 
-const DIETS: Diet[] = ["All", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian"];
+const DIETS: Diet[] = ["All", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian", "Anti-inflammatory"];
 
 function RecipeIdeasPage() {
   const [filter, setFilter] = useState<Diet>("All");
