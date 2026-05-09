@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -32,18 +32,12 @@ export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "Chat — PrepPal" }] }),
 });
 
-const SUGGESTIONS: Record<Mode, string[]> = {
-  plan: [
-    "Build a 7-day high-protein plan, ~2200 kcal, no pork, $80 budget.",
-    "Vegetarian Mediterranean week for 2, fast lunches under 15 min.",
-    "Cutting plan: 1800 kcal, 180g protein, 5 dinners I can prep on Sunday.",
-  ],
-  recipe: [
-    "Meal-prep recipe with chicken thighs, sweet potato, and broccoli.",
-    "High-protein vegan bowl I can make 4 servings of.",
-    "Use up: salmon, rice, cucumber, ginger.",
-  ],
-};
+const SUGGESTIONS: string[] = [
+  "Meal-prep recipe with chicken thighs, sweet potato, and broccoli.",
+  "High-protein vegan bowl I can make 4 servings of.",
+  "Build a 7-day high-protein plan, ~2200 kcal, no pork, $80 budget.",
+  "Use up: salmon, rice, cucumber, ginger.",
+];
 
 type Duration = "quick" | "few-days" | "week";
 const DURATION_LABELS: Record<Duration, { label: string; icon: React.ReactNode }> = {
@@ -71,13 +65,13 @@ function ChatPage() {
   const [activeId, setActiveId] = useState<string>(() =>
     typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString(36).slice(2),
   );
-  const [mode, setMode] = useState<Mode>("plan");
+  const mode: Mode = "recipe";
   const [duration, setDuration] = useState<Duration>("few-days");
   const [pantryOpen, setPantryOpen] = useState(false);
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode, duration, pantry: getPantry() }) }),
-    [mode, duration],
+    [duration],
   );
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -193,14 +187,6 @@ function ChatPage() {
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex rounded-full border border-border bg-card p-1">
-              <ModeBtn active={mode === "plan"} onClick={() => setMode("plan")} icon={<CalendarDays className="h-3.5 w-3.5" />}>
-                Weekly plan
-              </ModeBtn>
-              <ModeBtn active={mode === "recipe"} onClick={() => setMode("recipe")} icon={<UtensilsCrossed className="h-3.5 w-3.5" />}>
-                Recipe
-              </ModeBtn>
-            </div>
-            <div className="inline-flex rounded-full border border-border bg-card p-1">
               {(Object.keys(DURATION_LABELS) as Duration[]).map((d) => (
                 <ModeBtn key={d} active={duration === d} onClick={() => setDuration(d)} icon={DURATION_LABELS[d].icon}>
                   {DURATION_LABELS[d].label}
@@ -218,7 +204,7 @@ function ChatPage() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-8">
             {messages.length === 0 ? (
-              <Empty mode={mode} onPick={send} />
+              <Empty onPick={send} />
             ) : (
               <div className="space-y-6">
                 {messages.map((m) => (
@@ -251,7 +237,7 @@ function ChatPage() {
                 }
               }}
               autoFocus
-              placeholder={mode === "plan" ? "Tell me about your goals, diet, time…" : "What ingredients or craving?"}
+              placeholder="What ingredients, craving, or plan do you want?"
               className="min-h-[48px] max-h-40 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
             />
             <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="h-10 w-10 shrink-0">
@@ -286,22 +272,18 @@ function ModeBtn({ active, onClick, icon, children }: { active: boolean; onClick
   );
 }
 
-function Empty({ mode, onPick }: { mode: Mode; onPick: (s: string) => void }) {
+function Empty({ onPick }: { onPick: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center pt-12 text-center">
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[image:var(--gradient-hero)] text-primary-foreground shadow-[var(--shadow-glow)]">
         <Sparkles className="h-6 w-6" />
       </div>
-      <h2 className="text-2xl font-semibold tracking-tight">
-        {mode === "plan" ? "Plan your week" : "Cook something great"}
-      </h2>
+      <h2 className="text-2xl font-semibold tracking-tight">Cook something great</h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        {mode === "plan"
-          ? "Tell me your goals, diet, and how much time you have. I'll build a meal plan + grocery list."
-          : "Share ingredients or a craving. I'll generate a meal-prep-friendly recipe with storage tips."}
+        Share ingredients, a craving, or ask for a weekly plan. I'll generate recipes with photos, ingredients, and step-by-step instructions.
       </p>
       <div className="mt-8 grid w-full max-w-xl gap-2">
-        {SUGGESTIONS[mode].map((s) => (
+        {SUGGESTIONS.map((s) => (
           <button
             key={s}
             onClick={() => onPick(s)}
