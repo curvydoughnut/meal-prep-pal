@@ -151,10 +151,10 @@ function ChatPage() {
         </div>
         <div className="mt-4 flex-1 overflow-y-auto px-2">
           <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Recent</div>
-          {threadsQ.data?.length === 0 && (
+          {Array.isArray(threadsQ.data) && threadsQ.data.length === 0 && (
             <p className="px-3 py-4 text-sm text-muted-foreground">No chats yet.</p>
           )}
-          {threadsQ.data?.map((t) => (
+          {(Array.isArray(threadsQ.data) ? threadsQ.data : []).map((t) => (
             <button
               key={t.id}
               onClick={() => setActiveId(t.id)}
