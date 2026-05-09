@@ -68,18 +68,22 @@ function Landing() {
       </section>
 
       <section id="features" className="container mx-auto grid gap-6 px-6 pb-24 md:grid-cols-3">
-        {[
-          { icon: ListChecks, title: "Weekly plans", desc: "7-day menus matched to your macros, budget and time." },
-          { icon: Salad, title: "Recipe ideas", desc: "Turn what's in your fridge into a meal-prep-ready dish." },
-          { icon: Sparkles, title: "Smart grocery lists", desc: "Auto-generated, grouped by aisle so you shop in one trip." },
-        ].map(({ icon: Icon, title, desc }) => (
-          <div key={title} className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">
+        {([
+          { icon: ListChecks, title: "Weekly plans", desc: "7-day menus matched to your macros, budget and time.", to: "/weekly-plans" as const },
+          { icon: Salad, title: "Recipe ideas", desc: "Turn what's in your fridge into a meal-prep-ready dish.", to: "/recipe-ideas" as const },
+          { icon: Sparkles, title: "Smart grocery lists", desc: "Auto-generated, grouped by aisle so you shop in one trip.", to: "/grocery-lists" as const },
+        ]).map(({ icon: Icon, title, desc, to }) => (
+          <Link
+            key={title}
+            to={to}
+            className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)]"
+          >
+            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary transition-transform group-hover:scale-105">
               <Icon className="h-5 w-5" />
             </div>
             <h3 className="mb-1 text-lg font-semibold">{title}</h3>
             <p className="text-sm text-muted-foreground">{desc}</p>
-          </div>
+          </Link>
         ))}
       </section>
     </div>
