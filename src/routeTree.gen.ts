@@ -9,14 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeeklyPlansRouteImport } from './routes/weekly-plans'
 import { Route as RecipesRouteImport } from './routes/recipes'
+import { Route as RecipeIdeasRouteImport } from './routes/recipe-ideas'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const WeeklyPlansRoute = WeeklyPlansRouteImport.update({
+  id: '/weekly-plans',
+  path: '/weekly-plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecipesRoute = RecipesRouteImport.update({
   id: '/recipes',
   path: '/recipes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecipeIdeasRoute = RecipeIdeasRouteImport.update({
+  id: '/recipe-ideas',
+  path: '/recipe-ideas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -38,44 +50,85 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
+  '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
+  '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
+  '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chat' | '/recipes' | '/api/chat'
+  fullPaths:
+    | '/'
+    | '/chat'
+    | '/recipe-ideas'
+    | '/recipes'
+    | '/weekly-plans'
+    | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/recipes' | '/api/chat'
-  id: '__root__' | '/' | '/chat' | '/recipes' | '/api/chat'
+  to:
+    | '/'
+    | '/chat'
+    | '/recipe-ideas'
+    | '/recipes'
+    | '/weekly-plans'
+    | '/api/chat'
+  id:
+    | '__root__'
+    | '/'
+    | '/chat'
+    | '/recipe-ideas'
+    | '/recipes'
+    | '/weekly-plans'
+    | '/api/chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChatRoute: typeof ChatRoute
+  RecipeIdeasRoute: typeof RecipeIdeasRoute
   RecipesRoute: typeof RecipesRoute
+  WeeklyPlansRoute: typeof WeeklyPlansRoute
   ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/weekly-plans': {
+      id: '/weekly-plans'
+      path: '/weekly-plans'
+      fullPath: '/weekly-plans'
+      preLoaderRoute: typeof WeeklyPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recipes': {
       id: '/recipes'
       path: '/recipes'
       fullPath: '/recipes'
       preLoaderRoute: typeof RecipesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recipe-ideas': {
+      id: '/recipe-ideas'
+      path: '/recipe-ideas'
+      fullPath: '/recipe-ideas'
+      preLoaderRoute: typeof RecipeIdeasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -105,9 +158,21 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChatRoute: ChatRoute,
+  RecipeIdeasRoute: RecipeIdeasRoute,
   RecipesRoute: RecipesRoute,
+  WeeklyPlansRoute: WeeklyPlansRoute,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
