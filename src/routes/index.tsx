@@ -44,8 +44,14 @@ function Landing() {
             <Button size="lg" asChild className="shadow-[var(--shadow-glow)]">
               <Link to="/chat">Start cooking smarter</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
-              <a href="#features">How it works</a>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() =>
+                document.getElementById("features")?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+            >
+              How it works
             </Button>
           </div>
         </div>
