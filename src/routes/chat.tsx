@@ -108,9 +108,14 @@ function ChatPage() {
   const isLoading = status === "submitted" || status === "streaming";
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
+  // Focus the composer whenever the active thread changes (incl. opening a past chat) and after stream ends.
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [activeId, isLoading]);
 
   async function send(text: string) {
     if (!text.trim() || isLoading) return;
@@ -236,6 +241,7 @@ function ChatPage() {
             className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-[var(--shadow-soft)] focus-within:ring-2 focus-within:ring-ring"
           >
             <Textarea
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
