@@ -121,12 +121,51 @@ export function getMessages(threadId: string): UIMessage[] {
   return read().messages[threadId] ?? [];
 }
 
+function stripHeavyParts(msgs: UIMessage[]): UIMessage[] {
+  // Remove base64 image data URLs from tool outputs before persisting —
+  // they can be 1MB+ each and quickly blow past the 5MB localStorage quota.
+  return msgs.map((m) => {
+    if (!m.parts) return m;
+    const parts = m.parts.map((p: unknown) => {
+      const part = p as { type?: string; output?: { image?: string } };
+      if (
+        part?.type === "tool-generateMealImage" &&
+        part.output?.image &&
+        typeof part.output.image === "string" &&
+        part.output.image.startsWith("data:")
+      ) {
+        return { ...part, output: { ...part.output, image: "[image omitted]" } };
+      }
+      return p;
+    });
+    return { ...m, parts } as UIMessage;
+  });
+}
+
 export function setMessages(threadId: string, msgs: UIMessage[]) {
   const s = read();
-  s.messages[threadId] = msgs;
+  s.messages[threadId] = stripHeavyParts(msgs);
   const t = s.threads.find((x) => x.id === threadId);
   if (t) t.updated_at = new Date().toISOString();
-  write(s);
+  try {
+    write(s);
+  } catch (e) {
+    // Quota exceeded — drop oldest threads until it fits.
+    const sorted = [...s.threads].sort((a, b) => a.updated_at.localeCompare(b.updated_at));
+    while (sorted.length > 1) {
+      const oldest = sorted.shift()!;
+      if (oldest.id === threadId) continue;
+      delete s.messages[oldest.id];
+      s.threads = s.threads.filter((t) => t.id !== oldest.id);
+      try {
+        write(s);
+        return;
+      } catch {
+        // keep trimming
+      }
+    }
+    console.error("preppal: failed to persist messages, storage full", e);
+  }
 }
 
 export function subscribe(cb: () => void): () => void {
