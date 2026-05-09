@@ -362,7 +362,7 @@ function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: bo
           "max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed transition-all",
           isUser
             ? "bg-[image:var(--gradient-bubble-user)] text-primary-foreground shadow-[var(--shadow-soft)] rounded-br-lg"
-            : "bg-[image:var(--gradient-bubble-assistant)] text-card-foreground border border-border/50 shadow-[var(--shadow-card)] rounded-bl-lg",
+            : "bg-[image:var(--gradient-glass)] text-card-foreground border border-white/40 shadow-[var(--shadow-card)] backdrop-blur-xl rounded-bl-lg",
         )}
       >
         {typing ? (
