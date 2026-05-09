@@ -3,12 +3,22 @@ import type { UIMessage } from "ai";
 
 export type Mode = "plan" | "recipe";
 export type ThreadMeta = { id: string; title: string; mode: Mode; updated_at: string };
+export type Recipe = {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  favorite: boolean;
+  saved_at: string;
+  source?: { threadId: string; messageId: string };
+};
 type Stored = {
   threads: ThreadMeta[];
   messages: Record<string, UIMessage[]>;
   pantry: string[];
   /** keyed by `${threadId}:${itemKey}` */
   checked: Record<string, boolean>;
+  recipes: Recipe[];
 };
 
 const KEY = "preppal:store:v1";
@@ -17,11 +27,11 @@ let cache: Stored | null = null;
 
 function read(): Stored {
   if (cache) return cache;
-  if (typeof window === "undefined") return { threads: [], messages: {}, pantry: [], checked: {} };
+  if (typeof window === "undefined") return { threads: [], messages: {}, pantry: [], checked: {}, recipes: [] };
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) {
-      cache = { threads: [], messages: {}, pantry: [], checked: {} };
+      cache = { threads: [], messages: {}, pantry: [], checked: {}, recipes: [] };
       return cache;
     }
     const parsed = JSON.parse(raw) as Partial<Stored>;
@@ -30,10 +40,11 @@ function read(): Stored {
       messages: parsed.messages ?? {},
       pantry: parsed.pantry ?? [],
       checked: parsed.checked ?? {},
+      recipes: parsed.recipes ?? [],
     };
     return cache;
   } catch {
-    cache = { threads: [], messages: {}, pantry: [], checked: {} };
+    cache = { threads: [], messages: {}, pantry: [], checked: {}, recipes: [] };
     return cache;
   }
 }
@@ -159,5 +170,58 @@ export function toggleChecked(threadId: string, key: string) {
   const k = `${threadId}:${key}`;
   if (s.checked[k]) delete s.checked[k];
   else s.checked[k] = true;
+  write(s);
+}
+
+// ---------- Recipe book ----------
+let recipesSnap: Recipe[] = [];
+let recipesSnapRef: Recipe[] | null = null;
+
+export function listRecipes(): Recipe[] {
+  const raw = read().recipes;
+  if (recipesSnapRef !== raw) {
+    recipesSnap = raw;
+    recipesSnapRef = raw;
+  }
+  return recipesSnap;
+}
+
+export function findRecipeBySource(threadId: string, messageId: string): Recipe | undefined {
+  return read().recipes.find(
+    (r) => r.source?.threadId === threadId && r.source?.messageId === messageId,
+  );
+}
+
+export function saveRecipe(input: Omit<Recipe, "id" | "favorite" | "saved_at"> & { favorite?: boolean }): Recipe {
+  const s = read();
+  const r: Recipe = {
+    id: crypto.randomUUID(),
+    title: input.title.trim() || "Untitled recipe",
+    content: input.content,
+    image: input.image,
+    favorite: input.favorite ?? false,
+    saved_at: new Date().toISOString(),
+    source: input.source,
+  };
+  s.recipes = [r, ...s.recipes];
+  write(s);
+  return r;
+}
+
+export function deleteRecipe(id: string) {
+  const s = read();
+  s.recipes = s.recipes.filter((r) => r.id !== id);
+  write(s);
+}
+
+export function updateRecipe(id: string, patch: Partial<Pick<Recipe, "title" | "content" | "image" | "favorite">>) {
+  const s = read();
+  s.recipes = s.recipes.map((r) => (r.id === id ? { ...r, ...patch } : r));
+  write(s);
+}
+
+export function toggleFavorite(id: string) {
+  const s = read();
+  s.recipes = s.recipes.map((r) => (r.id === id ? { ...r, favorite: !r.favorite } : r));
   write(s);
 }

@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -19,6 +19,10 @@ import {
   removePantryItem,
   isChecked,
   toggleChecked,
+  saveRecipe,
+  deleteRecipe,
+  toggleFavorite,
+  findRecipeBySource,
   type Mode,
   type ThreadMeta,
 } from "@/lib/threads-store";
@@ -138,6 +142,14 @@ function ChatPage() {
           <Button onClick={newChat} className="w-full" variant="default">
             <Plus className="mr-2 h-4 w-4" /> New chat
           </Button>
+        </div>
+        <div className="mt-2 px-3">
+          <Link
+            to="/recipes"
+            className="flex w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent/30 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-sidebar-accent"
+          >
+            <BookOpen className="h-4 w-4" /> My recipe book
+          </Link>
         </div>
         <div className="mt-4 flex-1 overflow-y-auto px-2">
           <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Recent</div>
@@ -319,6 +331,31 @@ function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: bo
   const shoppingPart = toolParts.find(
     (p) => p.type === "tool-setShoppingList" && p.state === "output-available" && p.output?.groups,
   );
+  // re-render when recipe-book changes so the saved icon stays in sync
+  useSyncExternalStore(subscribe, () => (threadId ? !!findRecipeBySource(threadId, message.id) : false), () => false);
+  const saved = !isUser && threadId ? findRecipeBySource(threadId, message.id) : undefined;
+  const canSave = !isUser && !typing && !!text.trim() && !!threadId;
+  function deriveTitle(md: string): string {
+    const lines = md.split("\n").map((l) => l.trim()).filter(Boolean);
+    for (const l of lines) {
+      const h = l.replace(/^#+\s*/, "").replace(/^\*\*(.+)\*\*$/, "$1");
+      if (h && !/^[-*•]/.test(h)) return h.slice(0, 80);
+    }
+    return "Saved recipe";
+  }
+  function handleSave() {
+    if (!threadId) return;
+    if (saved) {
+      deleteRecipe(saved.id);
+      return;
+    }
+    saveRecipe({
+      title: deriveTitle(text),
+      content: text,
+      image: imagePart?.output?.image,
+      source: { threadId, messageId: message.id },
+    });
+  }
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
@@ -366,6 +403,33 @@ function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: bo
                 title={shoppingPart.output.title ?? "Shopping list"}
                 groups={shoppingPart.output.groups}
               />
+            )}
+            {canSave && (
+              <div className="flex items-center gap-1 pt-1">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                    saved
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  )}
+                >
+                  {saved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
+                  {saved ? "Saved" : "Save to recipe book"}
+                </button>
+                {saved && (
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(saved.id)}
+                    title={saved.favorite ? "Unfavorite" : "Favorite"}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground"
+                  >
+                    <Star className={cn("h-3.5 w-3.5", saved.favorite && "fill-yellow-400 text-yellow-400")} />
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}
