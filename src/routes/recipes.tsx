@@ -52,8 +52,8 @@ function RecipesPage() {
   const active = recipes.find((r) => r.id === activeId) ?? null;
 
   return (
-    <div className="flex h-screen bg-background">
-      <aside className="hidden w-80 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+    <div className="flex h-screen bg-[image:var(--gradient-soft)]">
+      <aside className="hidden w-80 flex-col border-r border-white/40 bg-[image:var(--gradient-glass)] backdrop-blur-2xl md:flex">
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -179,7 +179,7 @@ function RecipeView({ recipe, onClose }: { recipe: Recipe; onClose: () => void }
   }
   return (
     <>
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
+      <header className="flex items-center justify-between border-b border-white/30 bg-[image:var(--gradient-glass)] px-6 py-3 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <button onClick={() => toggleFavorite(recipe.id)} title="Favorite">
             <Star className={cn("h-5 w-5", recipe.favorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground")} />
