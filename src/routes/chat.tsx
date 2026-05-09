@@ -91,6 +91,8 @@ function ChatPage() {
   // from the previous thread before hydration completes.
   const hydratedIdRef = useRef<string | null>(null);
   useEffect(() => {
+    // Keep all parts on hydration so saved images/shopping lists still render,
+    // but the model context (sent on next send) is cleaned server-side via convertToModelMessages.
     setMessages(getMessages(activeId));
     hydratedIdRef.current = activeId;
   }, [activeId, setMessages]);
