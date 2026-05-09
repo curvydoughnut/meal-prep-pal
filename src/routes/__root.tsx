@@ -73,14 +73,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "PrepPal" },
+      { name: "description", content: "Meal Prep Pal is a generative AI application that creates personalized meal plans and recipes." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "PrepPal" },
+      { property: "og:description", content: "Meal Prep Pal is a generative AI application that creates personalized meal plans and recipes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "PrepPal" },
+      { name: "twitter:description", content: "Meal Prep Pal is a generative AI application that creates personalized meal plans and recipes." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/32776464-e683-4b7c-824a-a396eeecc280/id-preview-ae698c6a--ee5611c1-32d7-4a85-9e0c-165db43b3187.lovable.app-1778355589146.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/32776464-e683-4b7c-824a-a396eeecc280/id-preview-ae698c6a--ee5611c1-32d7-4a85-9e0c-165db43b3187.lovable.app-1778355589146.png" },
     ],
     links: [
       {
