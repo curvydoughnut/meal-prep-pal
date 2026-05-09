@@ -163,12 +163,36 @@ export const Route = createFileRoute("/api/chat")({
           }),
         };
 
+        // Strip giant base64 image data from prior tool outputs before sending to the model.
+        // Keeping full data URLs in history blows up the request size and causes Anthropic to fail.
+        const sanitized = (body.messages as UIMessage[]).map((m) => ({
+          ...m,
+          parts: Array.isArray((m as { parts?: unknown[] }).parts)
+            ? (m as unknown as { parts: Array<Record<string, unknown>> }).parts.map((p) => {
+                if (
+                  p &&
+                  typeof p === "object" &&
+                  typeof p.type === "string" &&
+                  p.type.startsWith("tool-") &&
+                  p.output &&
+                  typeof p.output === "object"
+                ) {
+                  const out = p.output as Record<string, unknown>;
+                  if (typeof out.image === "string" && out.image.length > 200) {
+                    return { ...p, output: { ...out, image: "[image omitted from history]" } };
+                  }
+                }
+                return p;
+              })
+            : (m as { parts?: unknown[] }).parts,
+        })) as UIMessage[];
+
         const result = streamText({
           model,
           system: SYSTEMS[mode](duration) + pantryNote,
           tools,
           stopWhen: stepCountIs(50),
-          messages: await convertToModelMessages(body.messages),
+          messages: await convertToModelMessages(sanitized),
         });
 
         return result.toUIMessageStreamResponse({ originalMessages: body.messages });
