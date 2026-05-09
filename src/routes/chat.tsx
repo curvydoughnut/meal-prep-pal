@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -132,61 +132,64 @@ function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <aside className="hidden w-72 flex-col border-r border-sidebar-border bg-sidebar md:flex">
-        <div className="flex items-center gap-2 px-5 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <ChefHat className="h-4 w-4" />
+    <div className="flex h-screen bg-[image:var(--gradient-soft)]">
+      <aside className="hidden w-72 flex-col border-r border-sidebar-border/60 bg-sidebar/70 backdrop-blur-xl md:flex">
+        <div className="flex items-center gap-2.5 px-5 py-5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[image:var(--gradient-hero)] text-primary-foreground shadow-[var(--shadow-soft)]">
+            <ChefHat className="h-4.5 w-4.5" />
           </div>
-          <span className="font-semibold">PrepPal</span>
+          <span className="font-semibold tracking-tight">PrepPal</span>
         </div>
         <div className="px-3">
-          <Button onClick={newChat} className="w-full" variant="default">
+          <Button onClick={newChat} className="w-full rounded-xl shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)]" variant="default">
             <Plus className="mr-2 h-4 w-4" /> New chat
           </Button>
         </div>
         <div className="mt-2 px-3">
           <Link
             to="/recipes"
-            className="flex w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-accent/30 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-sidebar-accent"
+            className="flex w-full items-center gap-2 rounded-xl border border-sidebar-border/60 bg-card/60 px-3 py-2 text-sm font-medium text-foreground transition-all hover:bg-sidebar-accent hover:shadow-[var(--shadow-soft)]"
           >
             <BookOpen className="h-4 w-4" /> My recipe book
           </Link>
         </div>
-        <div className="mt-4 flex-1 overflow-y-auto px-2">
-          <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Recent</div>
+        <div className="mt-5 flex-1 overflow-y-auto px-2">
+          <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">Recent</div>
           {threads.length === 0 && (
-            <p className="px-3 py-4 text-sm text-muted-foreground">No chats yet.</p>
+            <p className="px-3 py-4 text-sm text-muted-foreground/70">No chats yet.</p>
           )}
-          {threads.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveId(t.id)}
-              className={cn(
-                "group flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                activeId === t.id
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "hover:bg-sidebar-accent/60",
-              )}
-            >
-              <span className="truncate">{t.title}</span>
-              <Trash2
-                role="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeThread(t.id);
-                }}
-                className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
-              />
-            </button>
-          ))}
+          <div className="space-y-1">
+            {threads.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setActiveId(t.id)}
+                className={cn(
+                  "group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm transition-all",
+                  activeId === t.id
+                    ? "bg-card text-foreground shadow-[var(--shadow-soft)] border border-border/60"
+                    : "text-foreground/80 hover:bg-card/70 hover:shadow-[var(--shadow-soft)]",
+                )}
+              >
+                <MessageCircle className={cn("h-3.5 w-3.5 shrink-0", activeId === t.id ? "text-primary" : "text-muted-foreground")} />
+                <span className="flex-1 truncate">{t.title}</span>
+                <Trash2
+                  role="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeThread(t.id);
+                  }}
+                  className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-60 hover:!opacity-100"
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </aside>
 
       <main className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border px-6 py-3">
+        <header className="flex items-center justify-between border-b border-border/50 bg-background/40 px-6 py-3 backdrop-blur-md">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-full border border-border bg-card p-1">
+            <div className="inline-flex rounded-full border border-border/60 bg-card/80 p-1 shadow-[var(--shadow-soft)]">
               {(Object.keys(DURATION_LABELS) as Duration[]).map((d) => (
                 <ModeBtn key={d} active={duration === d} onClick={() => setDuration(d)} icon={DURATION_LABELS[d].icon}>
                   {DURATION_LABELS[d].label}
@@ -194,7 +197,7 @@ function ChatPage() {
               ))}
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setPantryOpen((v) => !v)} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => setPantryOpen((v) => !v)} className="gap-1.5 rounded-full border-border/60 bg-card/80">
             <Package className="h-3.5 w-3.5" />
             Pantry
             <span className="rounded-full bg-muted px-1.5 text-xs">{pantry.length}</span>
@@ -202,11 +205,11 @@ function ChatPage() {
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-3xl px-4 py-8">
+          <div className="mx-auto max-w-3xl px-4 py-10">
             {messages.length === 0 ? (
               <Empty onPick={send} />
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {messages.map((m) => (
                   <Bubble key={m.id} message={m} threadId={activeId} />
                 ))}
@@ -218,13 +221,13 @@ function ChatPage() {
           </div>
         </div>
 
-        <div className="border-t border-border bg-card/50 px-4 py-4">
+        <div className="border-t border-border/50 bg-background/40 px-4 py-4 backdrop-blur-md">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               send(input);
             }}
-            className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-[var(--shadow-soft)] focus-within:ring-2 focus-within:ring-ring"
+            className="mx-auto flex max-w-3xl items-end gap-2 rounded-3xl border border-border/60 bg-card/90 p-2 shadow-[var(--shadow-card)] backdrop-blur-md transition-all focus-within:border-primary/40 focus-within:shadow-[var(--shadow-glow)]"
           >
             <Textarea
               ref={inputRef}
@@ -238,13 +241,13 @@ function ChatPage() {
               }}
               autoFocus
               placeholder="What ingredients, craving, or plan do you want?"
-              className="min-h-[48px] max-h-40 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+              className="min-h-[48px] max-h-40 resize-none border-0 bg-transparent px-3 shadow-none focus-visible:ring-0"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="h-10 w-10 shrink-0">
+            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="h-10 w-10 shrink-0 rounded-2xl bg-[image:var(--gradient-hero)] text-primary-foreground shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-glow)] disabled:opacity-40">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
-          <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
+          <p className="mx-auto mt-2.5 max-w-3xl text-center text-[11px] text-muted-foreground/80">
             Estimates only. Always check with a professional for medical or dietary needs.
           </p>
         </div>
@@ -356,10 +359,10 @@ function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: bo
       )}
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-[var(--shadow-soft)]",
+          "max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed transition-all",
           isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-card text-card-foreground border border-border",
+            ? "bg-[image:var(--gradient-bubble-user)] text-primary-foreground shadow-[var(--shadow-soft)] rounded-br-lg"
+            : "bg-[image:var(--gradient-bubble-assistant)] text-card-foreground border border-border/50 shadow-[var(--shadow-card)] rounded-bl-lg",
         )}
       >
         {typing ? (
