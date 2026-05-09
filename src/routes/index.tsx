@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ChefHat, Sparkles, ListChecks, Salad } from "lucide-react";
 import heroImg from "@/assets/hero-mealprep.jpg";
-import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -15,7 +14,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-[image:var(--gradient-warm)]">
       <header className="container mx-auto flex items-center justify-between px-6 py-5">
@@ -26,14 +24,7 @@ function Landing() {
           <span className="text-lg font-semibold tracking-tight">PrepPal</span>
         </div>
         <nav className="flex items-center gap-2">
-          {user ? (
-            <Button asChild><Link to="/chat">Open app</Link></Button>
-          ) : (
-            <>
-              <Button variant="ghost" asChild><Link to="/login">Sign in</Link></Button>
-              <Button asChild><Link to="/login">Get started</Link></Button>
-            </>
-          )}
+          <Button asChild><Link to="/chat">Open app</Link></Button>
         </nav>
       </header>
 
@@ -51,7 +42,7 @@ function Landing() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button size="lg" asChild className="shadow-[var(--shadow-glow)]">
-              <Link to={user ? "/chat" : "/login"}>Start cooking smarter</Link>
+              <Link to="/chat">Start cooking smarter</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="#features">How it works</a>
