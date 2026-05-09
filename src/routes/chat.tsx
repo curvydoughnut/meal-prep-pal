@@ -290,7 +290,7 @@ function Empty({ onPick }: { onPick: (s: string) => void }) {
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="rounded-xl border border-border bg-card px-4 py-3 text-left text-sm text-foreground/80 transition-all hover:border-primary/40 hover:shadow-[var(--shadow-soft)]"
+            className="rounded-2xl border border-white/40 bg-[image:var(--gradient-glass)] px-4 py-3 text-left text-sm text-foreground/80 shadow-[var(--shadow-soft)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card)]"
           >
             {s}
           </button>
@@ -362,7 +362,7 @@ function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: bo
           "max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed transition-all",
           isUser
             ? "bg-[image:var(--gradient-bubble-user)] text-primary-foreground shadow-[var(--shadow-soft)] rounded-br-lg"
-            : "bg-[image:var(--gradient-bubble-assistant)] text-card-foreground border border-border/50 shadow-[var(--shadow-card)] rounded-bl-lg",
+            : "bg-[image:var(--gradient-glass)] text-card-foreground border border-white/40 shadow-[var(--shadow-card)] backdrop-blur-xl rounded-bl-lg",
         )}
       >
         {typing ? (
@@ -451,7 +451,7 @@ function ShoppingList({
     0,
   );
   return (
-    <div className="not-prose mt-2 rounded-xl border border-border bg-background/60 p-4">
+    <div className="not-prose mt-2 rounded-2xl border border-white/40 bg-[image:var(--gradient-glass)] p-4 shadow-[var(--shadow-soft)] backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShoppingBasket className="h-4 w-4 text-primary" />
@@ -514,8 +514,8 @@ function PantryPanel({ pantry, onClose }: { pantry: string[]; onClose: () => voi
     setDraft("");
   }
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-sidebar">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+    <aside className="flex w-80 shrink-0 flex-col border-l border-white/40 bg-[image:var(--gradient-glass)] backdrop-blur-2xl shadow-[var(--shadow-card)]">
+      <div className="flex items-center justify-between border-b border-white/30 px-4 py-3">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-primary" />
           <span className="font-semibold">My pantry</span>
