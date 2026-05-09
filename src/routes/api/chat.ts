@@ -57,7 +57,7 @@ When generating a recipe, do ALL of the following in one response:
 - bullet list with quantities (mark pantry items with "(have)")
 
 ### Step-by-step
-1. numbered steps, concise and clear
+1. numbered cooking steps, concise and clear — this section is REQUIRED and must always appear directly after the Ingredients section. Never end a recipe at the ingredients list.
 
 ### Storage & reheating
 - Tips matched to the requested duration`,
