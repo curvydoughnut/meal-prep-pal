@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, stepCountIs, tool, type UIMessage } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway";
+import { createAnthropic } from "@ai-sdk/anthropic";
 
 type Duration = "quick" | "few-days" | "week";
 
@@ -113,9 +114,13 @@ export const Route = createFileRoute("/api/chat")({
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+        const anthropicKey = process.env.ANTHROPIC_API_KEY;
+        if (!anthropicKey) return new Response("Missing ANTHROPIC_API_KEY", { status: 500 });
 
         const gateway = createLovableAiGatewayProvider(apiKey);
-        const model = gateway("google/gemini-3-flash-preview");
+        const anthropic = createAnthropic({ apiKey: anthropicKey });
+        // Claude powers all chat replies — detailed, conversational answers for recipes & variations.
+        const model = anthropic("claude-sonnet-4-5");
         const mode = body.mode === "recipe" ? "recipe" : "plan";
         const duration: Duration = body.duration ?? "few-days";
         const pantry = Array.isArray(body.pantry) ? body.pantry.filter(Boolean) : [];
