@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -14,6 +14,11 @@ import {
   getMessages,
   setMessages as persistMessages,
   subscribe,
+  getPantry,
+  addPantryItem,
+  removePantryItem,
+  isChecked,
+  toggleChecked,
   type Mode,
 } from "@/lib/threads-store";
 
@@ -50,11 +55,21 @@ function useThreads() {
   );
 }
 
+function usePantry() {
+  return useSyncExternalStore(
+    subscribe,
+    () => getPantry(),
+    () => [] as string[],
+  );
+}
+
 function ChatPage() {
   const threads = useThreads();
+  const pantry = usePantry();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("plan");
   const [duration, setDuration] = useState<Duration>("few-days");
+  const [pantryOpen, setPantryOpen] = useState(false);
 
   const initialMessages = useMemo<UIMessage[]>(
     () => (activeId ? getMessages(activeId) : []),
@@ -62,7 +77,7 @@ function ChatPage() {
   );
 
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode, duration }) }),
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode, duration, pantry: getPantry() }) }),
     [mode, duration],
   );
 
@@ -101,7 +116,7 @@ function ChatPage() {
     if (!text.trim() || isLoading) return;
     ensureThread(text);
     setInput("");
-    await sendMessage({ text }, { body: { mode, duration } });
+    await sendMessage({ text }, { body: { mode, duration, pantry: getPantry() } });
   }
 
   function newChat() {
@@ -177,6 +192,11 @@ function ChatPage() {
               ))}
             </div>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setPantryOpen((v) => !v)} className="gap-1.5">
+            <Package className="h-3.5 w-3.5" />
+            Pantry
+            <span className="rounded-full bg-muted px-1.5 text-xs">{pantry.length}</span>
+          </Button>
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
@@ -186,10 +206,10 @@ function ChatPage() {
             ) : (
               <div className="space-y-6">
                 {messages.map((m) => (
-                  <Bubble key={m.id} message={m} />
+                  <Bubble key={m.id} message={m} threadId={activeId} />
                 ))}
                 {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
-                  <Bubble message={{ id: "typing", role: "assistant", parts: [{ type: "text", text: "…" }] } as UIMessage} typing />
+                  <Bubble message={{ id: "typing", role: "assistant", parts: [{ type: "text", text: "…" }] } as UIMessage} typing threadId={activeId} />
                 )}
               </div>
             )}
@@ -226,6 +246,9 @@ function ChatPage() {
           </p>
         </div>
       </main>
+      {pantryOpen && (
+        <PantryPanel pantry={pantry} onClose={() => setPantryOpen(false)} />
+      )}
     </div>
   );
 }
@@ -275,16 +298,30 @@ function Empty({ mode, onPick }: { mode: Mode; onPick: (s: string) => void }) {
   );
 }
 
-function Bubble({ message, typing }: { message: UIMessage; typing?: boolean }) {
+function Bubble({ message, typing, threadId }: { message: UIMessage; typing?: boolean; threadId: string | null }) {
   const isUser = message.role === "user";
   const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-  type ToolPart = { type: string; state?: string; output?: { success?: boolean; image?: string; prompt?: string } };
+  type ShopGroup = { aisle: string; items: { name: string; qty?: string; note?: string }[] };
+  type ToolPart = {
+    type: string;
+    state?: string;
+    output?: {
+      success?: boolean;
+      image?: string;
+      prompt?: string;
+      title?: string;
+      groups?: ShopGroup[];
+    };
+  };
   const toolParts = message.parts as unknown as ToolPart[];
   const imagePart = toolParts.find(
     (p) => p.type === "tool-generateMealImage" && p.state === "output-available" && p.output?.success,
   );
   const imageLoading = !!toolParts.find(
     (p) => p.type === "tool-generateMealImage" && (p.state === "input-streaming" || p.state === "input-available"),
+  );
+  const shoppingPart = toolParts.find(
+    (p) => p.type === "tool-setShoppingList" && p.state === "output-available" && p.output?.groups,
   );
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
@@ -326,10 +363,161 @@ function Bubble({ message, typing }: { message: UIMessage; typing?: boolean }) {
                 <ReactMarkdown>{text}</ReactMarkdown>
               </div>
             )}
+            {shoppingPart?.output?.groups && threadId && (
+              <ShoppingList
+                threadId={threadId}
+                messageId={message.id}
+                title={shoppingPart.output.title ?? "Shopping list"}
+                groups={shoppingPart.output.groups}
+              />
+            )}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function ShoppingList({
+  threadId,
+  messageId,
+  title,
+  groups,
+}: {
+  threadId: string;
+  messageId: string;
+  title: string;
+  groups: { aisle: string; items: { name: string; qty?: string; note?: string }[] }[];
+}) {
+  // re-render on store changes
+  useSyncExternalStore(subscribe, () => getPantry().length, () => 0);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+  const done = groups.reduce(
+    (n, g) => n + g.items.filter((i) => isChecked(threadId, `${messageId}:${g.aisle}:${i.name}`)).length,
+    0,
+  );
+  return (
+    <div className="not-prose mt-2 rounded-xl border border-border bg-background/60 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShoppingBasket className="h-4 w-4 text-primary" />
+          <span className="font-semibold">{title}</span>
+        </div>
+        <span className="text-xs text-muted-foreground">{done}/{total}</span>
+      </div>
+      <div className="space-y-4">
+        {groups.map((g) => (
+          <div key={g.aisle}>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {g.aisle}
+            </div>
+            <ul className="space-y-1">
+              {g.items.map((it) => {
+                const key = `${messageId}:${g.aisle}:${it.name}`;
+                const checked = isChecked(threadId, key);
+                return (
+                  <li key={key}>
+                    <label className="flex cursor-pointer items-start gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleChecked(threadId, key)}
+                        className="mt-0.5 h-4 w-4 cursor-pointer accent-primary"
+                      />
+                      <span className={cn("flex-1 text-sm", checked && "text-muted-foreground line-through")}>
+                        {it.qty ? <span className="font-medium">{it.qty} </span> : null}
+                        {it.name}
+                        {it.note ? <span className="ml-1 text-xs text-muted-foreground">({it.note})</span> : null}
+                      </span>
+                      <button
+                        type="button"
+                        title="Add to pantry"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addPantryItem(it.name);
+                        }}
+                        className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                      >
+                        <Package className="h-3.5 w-3.5" />
+                      </button>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PantryPanel({ pantry, onClose }: { pantry: string[]; onClose: () => void }) {
+  const [draft, setDraft] = useState("");
+  function add() {
+    const parts = draft.split(",").map((s) => s.trim()).filter(Boolean);
+    parts.forEach(addPantryItem);
+    setDraft("");
+  }
+  return (
+    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-sidebar">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 text-primary" />
+          <span className="font-semibold">My pantry</span>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="border-b border-border p-3">
+        <p className="mb-2 text-xs text-muted-foreground">
+          Items you already have. The AI will skip these in your shopping list.
+        </p>
+        <div className="flex gap-1.5">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add();
+              }
+            }}
+            placeholder="e.g. olive oil, rice, eggs"
+            className="flex-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <Button size="sm" onClick={add} disabled={!draft.trim()}>
+            Add
+          </Button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3">
+        {pantry.length === 0 ? (
+          <p className="px-1 py-6 text-center text-sm text-muted-foreground">
+            Your pantry is empty.
+          </p>
+        ) : (
+          <ul className="space-y-1">
+            {pantry.map((item) => (
+              <li
+                key={item}
+                className="group flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-sm"
+              >
+                <span className="truncate">{item}</span>
+                <button
+                  type="button"
+                  onClick={() => removePantryItem(item)}
+                  className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </aside>
   );
 }
 
