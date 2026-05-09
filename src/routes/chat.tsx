@@ -278,15 +278,13 @@ function Empty({ mode, onPick }: { mode: Mode; onPick: (s: string) => void }) {
 function Bubble({ message, typing }: { message: UIMessage; typing?: boolean }) {
   const isUser = message.role === "user";
   const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-  const imagePart = message.parts.find(
-    (p) =>
-      // @ts-expect-error - dynamic tool part type from AI SDK
-      p.type === "tool-generateMealImage" && p.state === "output-available" && p.output?.success,
-  ) as { output?: { image?: string; prompt?: string } } | undefined;
-  const imageLoading = !!message.parts.find(
-    (p) =>
-      // @ts-expect-error - dynamic tool part type from AI SDK
-      p.type === "tool-generateMealImage" && (p.state === "input-streaming" || p.state === "input-available"),
+  type ToolPart = { type: string; state?: string; output?: { success?: boolean; image?: string; prompt?: string } };
+  const toolParts = message.parts as unknown as ToolPart[];
+  const imagePart = toolParts.find(
+    (p) => p.type === "tool-generateMealImage" && p.state === "output-available" && p.output?.success,
+  );
+  const imageLoading = !!toolParts.find(
+    (p) => p.type === "tool-generateMealImage" && (p.state === "input-streaming" || p.state === "input-available"),
   );
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
