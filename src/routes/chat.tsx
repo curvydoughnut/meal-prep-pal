@@ -75,11 +75,6 @@ function ChatPage() {
   const [duration, setDuration] = useState<Duration>("few-days");
   const [pantryOpen, setPantryOpen] = useState(false);
 
-  const initialMessages = useMemo<UIMessage[]>(
-    () => getMessages(activeId),
-    [activeId],
-  );
-
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode, duration, pantry: getPantry() }) }),
     [mode, duration],
@@ -87,16 +82,22 @@ function ChatPage() {
 
   const { messages, sendMessage, status, setMessages } = useChat({
     id: activeId,
-    messages: initialMessages,
+    messages: getMessages(activeId),
     transport,
   });
 
+  // When the active thread changes, hydrate useChat with that thread's saved messages.
+  // Track the last hydrated id so the persist effect below doesn't fire with stale messages
+  // from the previous thread before hydration completes.
+  const hydratedIdRef = useRef<string | null>(null);
   useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages, setMessages]);
+    setMessages(getMessages(activeId));
+    hydratedIdRef.current = activeId;
+  }, [activeId, setMessages]);
 
-  // Persist messages whenever they change — but only after the thread row exists.
+  // Persist messages — only for the active thread, only after hydration, only if it exists.
   useEffect(() => {
+    if (hydratedIdRef.current !== activeId) return;
     if (messages.length === 0) return;
     if (!listThreads().some((t) => t.id === activeId)) return;
     persistMessages(activeId, messages);
