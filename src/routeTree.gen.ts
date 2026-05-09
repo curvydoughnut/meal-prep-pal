@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeeklyPlansRouteImport } from './routes/weekly-plans'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as RecipeIdeasRouteImport } from './routes/recipe-ideas'
+import { Route as GroceryListsRouteImport } from './routes/grocery-lists'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -29,6 +30,11 @@ const RecipesRoute = RecipesRouteImport.update({
 const RecipeIdeasRoute = RecipeIdeasRouteImport.update({
   id: '/recipe-ideas',
   path: '/recipe-ideas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroceryListsRoute = GroceryListsRouteImport.update({
+  id: '/grocery-lists',
+  path: '/grocery-lists',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -50,6 +56,7 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/grocery-lists': typeof GroceryListsRoute
   '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/grocery-lists': typeof GroceryListsRoute
   '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
+  '/grocery-lists': typeof GroceryListsRoute
   '/recipe-ideas': typeof RecipeIdeasRoute
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/chat'
+    | '/grocery-lists'
     | '/recipe-ideas'
     | '/recipes'
     | '/weekly-plans'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/chat'
+    | '/grocery-lists'
     | '/recipe-ideas'
     | '/recipes'
     | '/weekly-plans'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/chat'
+    | '/grocery-lists'
     | '/recipe-ideas'
     | '/recipes'
     | '/weekly-plans'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChatRoute: typeof ChatRoute
+  GroceryListsRoute: typeof GroceryListsRoute
   RecipeIdeasRoute: typeof RecipeIdeasRoute
   RecipesRoute: typeof RecipesRoute
   WeeklyPlansRoute: typeof WeeklyPlansRoute
@@ -131,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipeIdeasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/grocery-lists': {
+      id: '/grocery-lists'
+      path: '/grocery-lists'
+      fullPath: '/grocery-lists'
+      preLoaderRoute: typeof GroceryListsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat': {
       id: '/chat'
       path: '/chat'
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChatRoute: ChatRoute,
+  GroceryListsRoute: GroceryListsRoute,
   RecipeIdeasRoute: RecipeIdeasRoute,
   RecipesRoute: RecipesRoute,
   WeeklyPlansRoute: WeeklyPlansRoute,
