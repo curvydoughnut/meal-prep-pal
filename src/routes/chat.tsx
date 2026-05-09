@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar, ShoppingBasket, X, Package, BookOpen, BookmarkPlus, BookmarkCheck, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -19,6 +19,10 @@ import {
   removePantryItem,
   isChecked,
   toggleChecked,
+  saveRecipe,
+  deleteRecipe,
+  toggleFavorite,
+  findRecipeBySource,
   type Mode,
   type ThreadMeta,
 } from "@/lib/threads-store";
