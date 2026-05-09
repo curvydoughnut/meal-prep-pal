@@ -13,6 +13,10 @@ import paleo from "@/assets/recipes/paleo-steak.jpg";
 import pescatarian from "@/assets/recipes/pescatarian-poke.jpg";
 import antiInflammatorySoup from "@/assets/recipes/anti-inflammatory-soup.jpg";
 import antiInflammatorySalad from "@/assets/recipes/anti-inflammatory-salad.jpg";
+import breakfastScramble from "@/assets/recipes/breakfast-scramble.jpg";
+import breakfastParfait from "@/assets/recipes/breakfast-parfait.jpg";
+import snackAppleAlmond from "@/assets/recipes/snack-apple-almond.jpg";
+import snackEnergyBalls from "@/assets/recipes/snack-energy-balls.jpg";
 
 export const Route = createFileRoute("/recipe-ideas")({
   component: RecipeIdeasPage,
@@ -28,9 +32,12 @@ export const Route = createFileRoute("/recipe-ideas")({
 
 type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory";
 
+type Meal = "All" | "Breakfast" | "Lunch" | "Dinner" | "Snack";
+
 type Recipe = {
   title: string;
   diet: Exclude<Diet, "All">;
+  meal: Exclude<Meal, "All">;
   desc: string;
   time: string;
   kcal: string;
@@ -39,25 +46,34 @@ type Recipe = {
 };
 
 const RECIPES: Recipe[] = [
-  { title: "Grilled Chicken Power Bowl", diet: "High-protein", desc: "Grilled chicken, brown rice, roasted broccoli & sweet potato.", time: "30 min", kcal: "520 kcal", image: highProtein, prompt: "Step-by-step recipe for a high-protein grilled chicken meal-prep bowl with brown rice, broccoli, and sweet potato — 4 servings." },
-  { title: "Rainbow Vegan Buddha Bowl", diet: "Vegan", desc: "Quinoa, chickpeas, kale, avocado, tahini drizzle.", time: "25 min", kcal: "480 kcal", image: veganBowl, prompt: "Step-by-step vegan buddha bowl recipe with quinoa, chickpeas, kale, avocado, and tahini dressing — 4 servings." },
-  { title: "Lemon Pepper Salmon", diet: "Keto", desc: "Pan-seared salmon with buttery asparagus.", time: "20 min", kcal: "430 kcal", image: ketoSalmon, prompt: "Step-by-step keto salmon recipe with buttery asparagus and lemon — 2 servings." },
-  { title: "Mediterranean Mezze Plate", diet: "Mediterranean", desc: "Hummus, falafel, cucumber, tomatoes, olives, pita.", time: "20 min", kcal: "560 kcal", image: mediterranean, prompt: "Step-by-step Mediterranean mezze plate recipe with hummus, baked falafel, cucumber, cherry tomatoes, olives and pita — 4 servings." },
-  { title: "Turkey Meatball Zoodles", diet: "Gluten-free", desc: "Zucchini noodles, lean turkey meatballs, basil tomato sauce.", time: "35 min", kcal: "410 kcal", image: glutenFree, prompt: "Step-by-step gluten-free turkey meatball zoodles recipe with tomato basil sauce — 4 servings." },
-  { title: "Berry Almond Oats", diet: "Vegetarian", desc: "Creamy oats, mixed berries, banana, almonds, honey.", time: "10 min", kcal: "380 kcal", image: vegetarian, prompt: "Step-by-step vegetarian breakfast oatmeal recipe with berries, banana, almonds and honey — 1 serving." },
-  { title: "Herb Steak & Sweet Potato", diet: "Paleo", desc: "Seared steak strips, roasted sweet potato, sautéed spinach.", time: "30 min", kcal: "590 kcal", image: paleo, prompt: "Step-by-step paleo herb steak recipe with roasted sweet potato cubes and sautéed spinach — 2 servings." },
-  { title: "Mango Shrimp Poke Bowl", diet: "Pescatarian", desc: "Shrimp, sushi rice, mango, edamame, cucumber, sesame.", time: "25 min", kcal: "510 kcal", image: pescatarian, prompt: "Step-by-step pescatarian shrimp poke bowl recipe with sushi rice, mango, edamame, cucumber, avocado, and sesame — 2 servings." },
-  { title: "Turmeric Ginger Lentil Soup", diet: "Anti-inflammatory", desc: "Lentils, turmeric, ginger, kale, carrots, coconut milk.", time: "35 min", kcal: "390 kcal", image: antiInflammatorySoup, prompt: "Step-by-step anti-inflammatory turmeric ginger lentil soup recipe with kale, carrots, and coconut milk — 4 servings." },
-  { title: "Salmon Avocado Power Salad", diet: "Anti-inflammatory", desc: "Salmon, avocado, leafy greens, walnuts, blueberries, olive oil.", time: "20 min", kcal: "470 kcal", image: antiInflammatorySalad, prompt: "Step-by-step anti-inflammatory salmon and avocado salad recipe with leafy greens, walnuts, blueberries, and olive oil dressing — 2 servings." },
+  { title: "Grilled Chicken Power Bowl", diet: "High-protein", meal: "Lunch", desc: "Grilled chicken, brown rice, roasted broccoli & sweet potato.", time: "30 min", kcal: "520 kcal", image: highProtein, prompt: "Step-by-step recipe for a high-protein grilled chicken meal-prep bowl with brown rice, broccoli, and sweet potato — 4 servings." },
+  { title: "Rainbow Vegan Buddha Bowl", diet: "Vegan", meal: "Lunch", desc: "Quinoa, chickpeas, kale, avocado, tahini drizzle.", time: "25 min", kcal: "480 kcal", image: veganBowl, prompt: "Step-by-step vegan buddha bowl recipe with quinoa, chickpeas, kale, avocado, and tahini dressing — 4 servings." },
+  { title: "Lemon Pepper Salmon", diet: "Keto", meal: "Dinner", desc: "Pan-seared salmon with buttery asparagus.", time: "20 min", kcal: "430 kcal", image: ketoSalmon, prompt: "Step-by-step keto salmon recipe with buttery asparagus and lemon — 2 servings." },
+  { title: "Mediterranean Mezze Plate", diet: "Mediterranean", meal: "Lunch", desc: "Hummus, falafel, cucumber, tomatoes, olives, pita.", time: "20 min", kcal: "560 kcal", image: mediterranean, prompt: "Step-by-step Mediterranean mezze plate recipe with hummus, baked falafel, cucumber, cherry tomatoes, olives and pita — 4 servings." },
+  { title: "Turkey Meatball Zoodles", diet: "Gluten-free", meal: "Dinner", desc: "Zucchini noodles, lean turkey meatballs, basil tomato sauce.", time: "35 min", kcal: "410 kcal", image: glutenFree, prompt: "Step-by-step gluten-free turkey meatball zoodles recipe with tomato basil sauce — 4 servings." },
+  { title: "Berry Almond Oats", diet: "Vegetarian", meal: "Breakfast", desc: "Creamy oats, mixed berries, banana, almonds, honey.", time: "10 min", kcal: "380 kcal", image: vegetarian, prompt: "Step-by-step vegetarian breakfast oatmeal recipe with berries, banana, almonds and honey — 1 serving." },
+  { title: "Herb Steak & Sweet Potato", diet: "Paleo", meal: "Dinner", desc: "Seared steak strips, roasted sweet potato, sautéed spinach.", time: "30 min", kcal: "590 kcal", image: paleo, prompt: "Step-by-step paleo herb steak recipe with roasted sweet potato cubes and sautéed spinach — 2 servings." },
+  { title: "Mango Shrimp Poke Bowl", diet: "Pescatarian", meal: "Lunch", desc: "Shrimp, sushi rice, mango, edamame, cucumber, sesame.", time: "25 min", kcal: "510 kcal", image: pescatarian, prompt: "Step-by-step pescatarian shrimp poke bowl recipe with sushi rice, mango, edamame, cucumber, avocado, and sesame — 2 servings." },
+  { title: "Turmeric Ginger Lentil Soup", diet: "Anti-inflammatory", meal: "Dinner", desc: "Lentils, turmeric, ginger, kale, carrots, coconut milk.", time: "35 min", kcal: "390 kcal", image: antiInflammatorySoup, prompt: "Step-by-step anti-inflammatory turmeric ginger lentil soup recipe with kale, carrots, and coconut milk — 4 servings." },
+  { title: "Salmon Avocado Power Salad", diet: "Anti-inflammatory", meal: "Lunch", desc: "Salmon, avocado, leafy greens, walnuts, blueberries, olive oil.", time: "20 min", kcal: "470 kcal", image: antiInflammatorySalad, prompt: "Step-by-step anti-inflammatory salmon and avocado salad recipe with leafy greens, walnuts, blueberries, and olive oil dressing — 2 servings." },
+  { title: "Veggie Feta Scramble", diet: "Vegetarian", meal: "Breakfast", desc: "Eggs, spinach, cherry tomatoes, feta, whole-grain toast.", time: "15 min", kcal: "420 kcal", image: breakfastScramble, prompt: "Step-by-step vegetarian breakfast scramble recipe with eggs, spinach, cherry tomatoes, feta, and whole grain toast — 2 servings." },
+  { title: "Greek Yogurt Berry Parfait", diet: "High-protein", meal: "Breakfast", desc: "Greek yogurt, granola, strawberries, blueberries, honey.", time: "5 min", kcal: "320 kcal", image: breakfastParfait, prompt: "Step-by-step high-protein Greek yogurt parfait recipe with granola, strawberries, blueberries, and honey — 1 serving." },
+  { title: "Apple & Almond Butter", diet: "Vegan", meal: "Snack", desc: "Crisp apple slices with almond butter and cinnamon.", time: "5 min", kcal: "210 kcal", image: snackAppleAlmond, prompt: "Step-by-step vegan apple and almond butter snack recipe with cinnamon — 1 serving." },
+  { title: "No-Bake Energy Balls", diet: "Vegetarian", meal: "Snack", desc: "Oats, peanut butter, dark chocolate, chia seeds.", time: "15 min", kcal: "150 kcal", image: snackEnergyBalls, prompt: "Step-by-step no-bake protein energy balls recipe with oats, peanut butter, dark chocolate chips, and chia seeds — makes 12." },
 ];
 
 const DIETS: Diet[] = ["All", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian", "Anti-inflammatory"];
+const MEALS: Meal[] = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];
 
 function RecipeIdeasPage() {
   const [filter, setFilter] = useState<Diet>("All");
+  const [meal, setMeal] = useState<Meal>("All");
   const visible = useMemo(
-    () => (filter === "All" ? RECIPES : RECIPES.filter((r) => r.diet === filter)),
-    [filter],
+    () =>
+      RECIPES.filter(
+        (r) => (filter === "All" || r.diet === filter) && (meal === "All" || r.meal === meal),
+      ),
+    [filter, meal],
   );
 
   return (
@@ -76,27 +92,51 @@ function RecipeIdeasPage() {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
           <Salad className="h-3.5 w-3.5 text-primary" /> Recipe ideas
         </div>
-        <h1 className="max-w-2xl text-4xl font-bold tracking-tight md:text-5xl">A recipe for every diet.</h1>
+        <h1 className="max-w-2xl text-4xl font-bold tracking-tight md:text-5xl">A recipe for every diet & meal.</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          Browse curated meal-prep ideas across high-protein, vegan, keto, Mediterranean and more. Tap any recipe
-          to get full step-by-step instructions, ingredients, and portions in chat.
+          Breakfasts, lunches, dinners, and snacks across high-protein, vegan, keto, Mediterranean,
+          anti-inflammatory and more. Tap any recipe for full step-by-step instructions in chat.
         </p>
 
-        <div className="mt-8 flex flex-wrap gap-2">
-          {DIETS.map((d) => (
-            <button
-              key={d}
-              onClick={() => setFilter(d)}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
-                filter === d
-                  ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-              )}
-            >
-              {d}
-            </button>
-          ))}
+        <div className="mt-8 space-y-3">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Meal</p>
+            <div className="flex flex-wrap gap-2">
+              {MEALS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMeal(m)}
+                  className={cn(
+                    "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
+                    meal === m
+                      ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Diet</p>
+            <div className="flex flex-wrap gap-2">
+              {DIETS.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setFilter(d)}
+                  className={cn(
+                    "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all",
+                    filter === d
+                      ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+                      : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                  )}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -117,8 +157,9 @@ function RecipeIdeasPage() {
                 />
               </div>
               <div className="p-5">
-                <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-primary">
-                  {r.diet}
+                <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{r.meal}</span>
+                  <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-primary">{r.diet}</span>
                 </div>
                 <h3 className="text-lg font-semibold tracking-tight">{r.title}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.desc}</p>
