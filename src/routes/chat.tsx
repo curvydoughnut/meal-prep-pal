@@ -278,6 +278,16 @@ function Empty({ mode, onPick }: { mode: Mode; onPick: (s: string) => void }) {
 function Bubble({ message, typing }: { message: UIMessage; typing?: boolean }) {
   const isUser = message.role === "user";
   const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+  const imagePart = message.parts.find(
+    (p) =>
+      // @ts-expect-error - dynamic tool part type from AI SDK
+      p.type === "tool-generateMealImage" && p.state === "output-available" && p.output?.success,
+  ) as { output?: { image?: string; prompt?: string } } | undefined;
+  const imageLoading = !!message.parts.find(
+    (p) =>
+      // @ts-expect-error - dynamic tool part type from AI SDK
+      p.type === "tool-generateMealImage" && (p.state === "input-streaming" || p.state === "input-available"),
+  );
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
@@ -300,8 +310,24 @@ function Bubble({ message, typing }: { message: UIMessage; typing?: boolean }) {
         ) : isUser ? (
           <p className="whitespace-pre-wrap">{text}</p>
         ) : (
-          <div className="prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5">
-            <ReactMarkdown>{text}</ReactMarkdown>
+          <div className="space-y-3">
+            {imageLoading && !imagePart?.output?.image && (
+              <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl border border-border bg-muted/40 text-xs text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Plating your dish…
+              </div>
+            )}
+            {imagePart?.output?.image && (
+              <img
+                src={imagePart.output.image}
+                alt={imagePart.output.prompt ?? "Generated meal"}
+                className="w-full rounded-xl border border-border object-cover"
+              />
+            )}
+            {text && (
+              <div className="prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5">
+                <ReactMarkdown>{text}</ReactMarkdown>
+              </div>
+            )}
           </div>
         )}
       </div>
