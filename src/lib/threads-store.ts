@@ -13,31 +13,53 @@ type Stored = {
 
 const KEY = "preppal:store:v1";
 
+let cache: Stored | null = null;
+
 function read(): Stored {
+  if (cache) return cache;
   if (typeof window === "undefined") return { threads: [], messages: {}, pantry: [], checked: {} };
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { threads: [], messages: {}, pantry: [], checked: {} };
+    if (!raw) {
+      cache = { threads: [], messages: {}, pantry: [], checked: {} };
+      return cache;
+    }
     const parsed = JSON.parse(raw) as Partial<Stored>;
-    return {
+    cache = {
       threads: parsed.threads ?? [],
       messages: parsed.messages ?? {},
       pantry: parsed.pantry ?? [],
       checked: parsed.checked ?? {},
     };
+    return cache;
   } catch {
-    return { threads: [], messages: {}, pantry: [], checked: {} };
+    cache = { threads: [], messages: {}, pantry: [], checked: {} };
+    return cache;
   }
 }
 
 function write(s: Stored) {
   if (typeof window === "undefined") return;
+  cache = s;
   localStorage.setItem(KEY, JSON.stringify(s));
   window.dispatchEvent(new Event("preppal:store"));
 }
 
+// Memoized snapshots so useSyncExternalStore sees stable references.
+let threadsSnap: ThreadMeta[] = [];
+let threadsSnapKey = "";
+let pantrySnap: string[] = [];
+let pantrySnapRef: string[] | null = null;
+
 export function listThreads(): ThreadMeta[] {
-  return read().threads.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  const raw = read().threads;
+  const sorted = [...raw].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  const key = sorted.map((t) => `${t.id}:${t.updated_at}:${t.title}`).join("|");
+  if (key !== threadsSnapKey) {
+    threadsSnap = sorted;
+    threadsSnapKey = key;
+  }
+  return threadsSnap;
 }
 
 export function createThread(mode: Mode, title = "New chat"): ThreadMeta {
@@ -56,9 +78,11 @@ export function createThread(mode: Mode, title = "New chat"): ThreadMeta {
 
 export function deleteThread(id: string) {
   const s = read();
-  s.threads = s.threads.filter((t) => t.id !== id);
-  delete s.messages[id];
-  write(s);
+  write({
+    ...s,
+    threads: s.threads.filter((t) => t.id !== id),
+    messages: Object.fromEntries(Object.entries(s.messages).filter(([k]) => k !== id)),
+  });
 }
 
 export function renameThread(id: string, title: string) {
@@ -95,7 +119,12 @@ export function subscribe(cb: () => void): () => void {
 
 // ---------- Pantry ----------
 export function getPantry(): string[] {
-  return read().pantry;
+  const raw = read().pantry;
+  if (pantrySnapRef !== raw) {
+    pantrySnap = raw;
+    pantrySnapRef = raw;
+  }
+  return pantrySnap;
 }
 
 export function setPantry(items: string[]) {

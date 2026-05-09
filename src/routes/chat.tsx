@@ -20,6 +20,7 @@ import {
   isChecked,
   toggleChecked,
   type Mode,
+  type ThreadMeta,
 } from "@/lib/threads-store";
 
 export const Route = createFileRoute("/chat")({
@@ -47,20 +48,15 @@ const DURATION_LABELS: Record<Duration, { label: string; icon: React.ReactNode }
   week: { label: "A week", icon: <Calendar className="h-3.5 w-3.5" /> },
 };
 
+const EMPTY_THREADS: ThreadMeta[] = [];
+const EMPTY_PANTRY: string[] = [];
+
 function useThreads() {
-  return useSyncExternalStore(
-    subscribe,
-    () => listThreads(),
-    () => [],
-  );
+  return useSyncExternalStore(subscribe, listThreads, () => EMPTY_THREADS);
 }
 
 function usePantry() {
-  return useSyncExternalStore(
-    subscribe,
-    () => getPantry(),
-    () => [] as string[],
-  );
+  return useSyncExternalStore(subscribe, getPantry, () => EMPTY_PANTRY);
 }
 
 function ChatPage() {
