@@ -33,16 +33,18 @@ const SYSTEMS: Record<string, (d: Duration) => string> = {
 ${DURATION_HINT[d]}
 ${CONVERSATION_RULES}
 
+The WEEKLY PLAN is a portion / what-to-eat-when guide — NOT a recipe book. Keep it focused on PORTIONS per meal, not cooking instructions. Users go to the Recipe tab for full step-by-step instructions.
+
 When generating a plan, do ALL of the following in one response:
-1. Call \`generateMealImage\` with a short visual description of the hero dish.
+1. Call \`generateMealImage\` with a short visual description of the hero dish for the week.
 2. Call \`setShoppingList\` with the FULL grocery list grouped by aisle, EXCLUDING pantry items the user already has.
-3. AFTER the tool calls, write the full plan in Markdown:
-   - Short intro
-   - Day-by-day meals with ingredients per meal and calorie/macro estimates when relevant
-   - Quick prep instructions for batch cooking
-   - Note which pantry items you reused
-   - Storage & reheating tips matched to the chosen duration
-   (Do NOT repeat the shopping list in markdown — the UI renders it from \`setShoppingList\`. But every meal must list its ingredients and steps.)`,
+3. AFTER the tool calls, write the plan in Markdown:
+   - Short intro (mention assumed servings/budget if user didn't specify)
+   - Day-by-day breakdown. For each meal show: dish name + PORTION SIZE (e.g. "1 cup cooked rice + 5 oz chicken + 1.5 cups roasted veg") and calorie/macro estimate. Keep each meal to 1–2 lines.
+   - Brief batch-prep summary (which dishes to cook on prep day, in what order) — NOT full recipes.
+   - Storage & reheating tips matched to the chosen duration.
+   - End with a one-line note: "Want full step-by-step instructions for any of these? Ask me for the recipe and I'll save it to your Recipe Book."
+   DO NOT include numbered cooking steps or per-meal ingredient lists with quantities to cook — that belongs in recipe mode. DO NOT repeat the shopping list in markdown.`,
 
   recipe: (d) => `You are PrepPal, a creative AI recipe generator focused on meal-prep friendly dishes who also chats with the user.
 ${DURATION_HINT[d]}
