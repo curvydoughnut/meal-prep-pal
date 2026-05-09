@@ -5,7 +5,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles } from "lucide-react";
+import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles, Timer, CalendarRange, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   listThreads,
@@ -35,6 +35,13 @@ const SUGGESTIONS: Record<Mode, string[]> = {
   ],
 };
 
+type Duration = "quick" | "few-days" | "week";
+const DURATION_LABELS: Record<Duration, { label: string; icon: React.ReactNode }> = {
+  quick: { label: "30 min", icon: <Timer className="h-3.5 w-3.5" /> },
+  "few-days": { label: "Few days", icon: <CalendarRange className="h-3.5 w-3.5" /> },
+  week: { label: "A week", icon: <Calendar className="h-3.5 w-3.5" /> },
+};
+
 function useThreads() {
   return useSyncExternalStore(
     subscribe,
@@ -47,6 +54,7 @@ function ChatPage() {
   const threads = useThreads();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("plan");
+  const [duration, setDuration] = useState<Duration>("few-days");
 
   const initialMessages = useMemo<UIMessage[]>(
     () => (activeId ? getMessages(activeId) : []),
@@ -54,8 +62,8 @@ function ChatPage() {
   );
 
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode }) }),
-    [mode],
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode, duration }) }),
+    [mode, duration],
   );
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -93,7 +101,7 @@ function ChatPage() {
     if (!text.trim() || isLoading) return;
     ensureThread(text);
     setInput("");
-    await sendMessage({ text }, { body: { mode } });
+    await sendMessage({ text }, { body: { mode, duration } });
   }
 
   function newChat() {
@@ -152,13 +160,22 @@ function ChatPage() {
 
       <main className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
-          <div className="inline-flex rounded-full border border-border bg-card p-1">
-            <ModeBtn active={mode === "plan"} onClick={() => setMode("plan")} icon={<CalendarDays className="h-3.5 w-3.5" />}>
-              Weekly plan
-            </ModeBtn>
-            <ModeBtn active={mode === "recipe"} onClick={() => setMode("recipe")} icon={<UtensilsCrossed className="h-3.5 w-3.5" />}>
-              Recipe
-            </ModeBtn>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-full border border-border bg-card p-1">
+              <ModeBtn active={mode === "plan"} onClick={() => setMode("plan")} icon={<CalendarDays className="h-3.5 w-3.5" />}>
+                Weekly plan
+              </ModeBtn>
+              <ModeBtn active={mode === "recipe"} onClick={() => setMode("recipe")} icon={<UtensilsCrossed className="h-3.5 w-3.5" />}>
+                Recipe
+              </ModeBtn>
+            </div>
+            <div className="inline-flex rounded-full border border-border bg-card p-1">
+              {(Object.keys(DURATION_LABELS) as Duration[]).map((d) => (
+                <ModeBtn key={d} active={duration === d} onClick={() => setDuration(d)} icon={DURATION_LABELS[d].icon}>
+                  {DURATION_LABELS[d].label}
+                </ModeBtn>
+              ))}
+            </div>
           </div>
         </header>
 
