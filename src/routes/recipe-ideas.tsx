@@ -100,7 +100,6 @@ function RecipeIdeasPage() {
             <Link
               key={r.title}
               to="/chat"
-              search={{ prompt: r.prompt }}
               className="group overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)]"
             >
               <div className="aspect-square overflow-hidden bg-muted">
