@@ -9,7 +9,7 @@ import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sp
 import { cn } from "@/lib/utils";
 import {
   listThreads,
-  createThread,
+  ensureThreadWithId,
   deleteThread,
   getMessages,
   setMessages as persistMessages,
@@ -66,13 +66,17 @@ function usePantry() {
 function ChatPage() {
   const threads = useThreads();
   const pantry = usePantry();
-  const [activeId, setActiveId] = useState<string | null>(null);
+  // Stable chat id from the very first render so useChat is never remounted mid-stream.
+  // The thread row is only persisted on the first send.
+  const [activeId, setActiveId] = useState<string>(() =>
+    typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+  );
   const [mode, setMode] = useState<Mode>("plan");
   const [duration, setDuration] = useState<Duration>("few-days");
   const [pantryOpen, setPantryOpen] = useState(false);
 
   const initialMessages = useMemo<UIMessage[]>(
-    () => (activeId ? getMessages(activeId) : []),
+    () => getMessages(activeId),
     [activeId],
   );
 
@@ -82,7 +86,7 @@ function ChatPage() {
   );
 
   const { messages, sendMessage, status, setMessages } = useChat({
-    id: activeId ?? "empty",
+    id: activeId,
     messages: initialMessages,
     transport,
   });
@@ -91,9 +95,10 @@ function ChatPage() {
     setMessages(initialMessages);
   }, [initialMessages, setMessages]);
 
-  // Persist messages whenever they change (and not actively streaming half-state)
+  // Persist messages whenever they change — but only after the thread row exists.
   useEffect(() => {
-    if (!activeId) return;
+    if (messages.length === 0) return;
+    if (!listThreads().some((t) => t.id === activeId)) return;
     persistMessages(activeId, messages);
   }, [messages, activeId]);
 
@@ -104,23 +109,18 @@ function ChatPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
 
-  function ensureThread(text: string): string {
-    if (activeId) return activeId;
-    const title = text.slice(0, 60) || "New chat";
-    const t = createThread(mode, title);
-    setActiveId(t.id);
-    return t.id;
-  }
-
   async function send(text: string) {
     if (!text.trim() || isLoading) return;
-    ensureThread(text);
+    // Persist thread metadata on first send; id stays stable so useChat is not remounted.
+    ensureThreadWithId(activeId, mode, text.slice(0, 60) || "New chat");
     setInput("");
     await sendMessage({ text }, { body: { mode, duration, pantry: getPantry() } });
   }
 
   function newChat() {
-    setActiveId(null);
+    setActiveId(
+      typeof crypto !== "undefined" ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+    );
     setMessages([]);
   }
 

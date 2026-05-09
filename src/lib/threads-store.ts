@@ -87,6 +87,17 @@ export function createThread(mode: Mode, title = "New chat"): ThreadMeta {
   return t;
 }
 
+export function ensureThreadWithId(id: string, mode: Mode, title = "New chat"): ThreadMeta {
+  const s = read();
+  const existing = s.threads.find((t) => t.id === id);
+  if (existing) return existing;
+  const t: ThreadMeta = { id, title, mode, updated_at: new Date().toISOString() };
+  s.threads.push(t);
+  s.messages[id] = s.messages[id] ?? [];
+  write(s);
+  return t;
+}
+
 export function deleteThread(id: string) {
   const s = read();
   write({
