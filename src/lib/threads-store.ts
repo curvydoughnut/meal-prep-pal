@@ -1,0 +1,82 @@
+// Local-only thread + message store (no auth, no backend)
+import type { UIMessage } from "ai";
+
+export type Mode = "plan" | "recipe";
+export type ThreadMeta = { id: string; title: string; mode: Mode; updated_at: string };
+type Stored = { threads: ThreadMeta[]; messages: Record<string, UIMessage[]> };
+
+const KEY = "preppal:store:v1";
+
+function read(): Stored {
+  if (typeof window === "undefined") return { threads: [], messages: {} };
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return { threads: [], messages: {} };
+    return JSON.parse(raw) as Stored;
+  } catch {
+    return { threads: [], messages: {} };
+  }
+}
+
+function write(s: Stored) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(KEY, JSON.stringify(s));
+  window.dispatchEvent(new Event("preppal:store"));
+}
+
+export function listThreads(): ThreadMeta[] {
+  return read().threads.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+}
+
+export function createThread(mode: Mode, title = "New chat"): ThreadMeta {
+  const t: ThreadMeta = {
+    id: crypto.randomUUID(),
+    title,
+    mode,
+    updated_at: new Date().toISOString(),
+  };
+  const s = read();
+  s.threads.push(t);
+  s.messages[t.id] = [];
+  write(s);
+  return t;
+}
+
+export function deleteThread(id: string) {
+  const s = read();
+  s.threads = s.threads.filter((t) => t.id !== id);
+  delete s.messages[id];
+  write(s);
+}
+
+export function renameThread(id: string, title: string) {
+  const s = read();
+  const t = s.threads.find((x) => x.id === id);
+  if (t) {
+    t.title = title;
+    t.updated_at = new Date().toISOString();
+  }
+  write(s);
+}
+
+export function getMessages(threadId: string): UIMessage[] {
+  return read().messages[threadId] ?? [];
+}
+
+export function setMessages(threadId: string, msgs: UIMessage[]) {
+  const s = read();
+  s.messages[threadId] = msgs;
+  const t = s.threads.find((x) => x.id === threadId);
+  if (t) t.updated_at = new Date().toISOString();
+  write(s);
+}
+
+export function subscribe(cb: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("preppal:store", cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener("preppal:store", cb);
+    window.removeEventListener("storage", cb);
+  };
+}

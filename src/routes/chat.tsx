@@ -1,24 +1,26 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import ReactMarkdown from "react-markdown";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChefHat, Plus, Send, Trash2, Loader2, LogOut, CalendarDays, UtensilsCrossed, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { ChefHat, Plus, Send, Trash2, Loader2, CalendarDays, UtensilsCrossed, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { listThreads, createThread, deleteThread, getThreadMessages } from "@/lib/threads.functions";
+import {
+  listThreads,
+  createThread,
+  deleteThread,
+  getMessages,
+  setMessages as persistMessages,
+  subscribe,
+  type Mode,
+} from "@/lib/threads-store";
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
   head: () => ({ meta: [{ title: "Chat — PrepPal" }] }),
 });
-
-type Mode = "plan" | "recipe";
 
 const SUGGESTIONS: Record<Mode, string[]> = {
   plan: [
@@ -33,64 +35,44 @@ const SUGGESTIONS: Record<Mode, string[]> = {
   ],
 };
 
+function useThreads() {
+  return useSyncExternalStore(
+    subscribe,
+    () => listThreads(),
+    () => [],
+  );
+}
+
 function ChatPage() {
-  const navigate = useNavigate();
-  const { user, loading, signOut, session } = useAuth();
-  const qc = useQueryClient();
+  const threads = useThreads();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("plan");
-  const [initialMessages, setInitialMessages] = useState<UIMessage[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [user, loading, navigate]);
-
-  const threadsQ = useQuery({
-    queryKey: ["threads"],
-    queryFn: () => listThreads(),
-    enabled: !!user,
-  });
-
-  // Load messages whenever active thread changes
-  useEffect(() => {
-    if (!activeId) {
-      setInitialMessages([]);
-      return;
-    }
-    setLoadingMessages(true);
-    getThreadMessages({ data: { threadId: activeId } })
-      .then((rows) => {
-        setInitialMessages(
-          rows.map((r) => ({ id: r.id, role: r.role, parts: r.parts as UIMessage["parts"] }) as UIMessage),
-        );
-      })
-      .catch((e) => toast.error(e.message))
-      .finally(() => setLoadingMessages(false));
-  }, [activeId]);
+  const initialMessages = useMemo<UIMessage[]>(
+    () => (activeId ? getMessages(activeId) : []),
+    [activeId],
+  );
 
   const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/chat",
-        headers: () => ({
-          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
-        }),
-        body: () => ({ mode, threadId: activeId }),
-      }),
-    [session?.access_token, mode, activeId],
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ mode }) }),
+    [mode],
   );
 
   const { messages, sendMessage, status, setMessages } = useChat({
     id: activeId ?? "empty",
     messages: initialMessages,
     transport,
-    onError: (e) => toast.error(e.message),
   });
 
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages, setMessages]);
+
+  // Persist messages whenever they change (and not actively streaming half-state)
+  useEffect(() => {
+    if (!activeId) return;
+    persistMessages(activeId, messages);
+  }, [messages, activeId]);
 
   const isLoading = status === "submitted" || status === "streaming";
   const [input, setInput] = useState("");
@@ -99,44 +81,33 @@ function ChatPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
 
-  async function ensureThread(): Promise<string> {
+  function ensureThread(text: string): string {
     if (activeId) return activeId;
-    const t = await createThread({ data: { mode } });
-    qc.invalidateQueries({ queryKey: ["threads"] });
+    const title = text.slice(0, 60) || "New chat";
+    const t = createThread(mode, title);
     setActiveId(t.id);
     return t.id;
   }
 
   async function send(text: string) {
     if (!text.trim() || isLoading) return;
-    const id = await ensureThread();
+    ensureThread(text);
     setInput("");
-    await sendMessage({ text }, { body: { mode, threadId: id } });
-    setTimeout(() => qc.invalidateQueries({ queryKey: ["threads"] }), 800);
+    await sendMessage({ text }, { body: { mode } });
   }
 
-  async function newChat() {
+  function newChat() {
     setActiveId(null);
     setMessages([]);
   }
 
-  async function removeThread(id: string) {
-    await deleteThread({ data: { id } });
+  function removeThread(id: string) {
+    deleteThread(id);
     if (activeId === id) newChat();
-    qc.invalidateQueries({ queryKey: ["threads"] });
-  }
-
-  if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
   }
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar */}
       <aside className="hidden w-72 flex-col border-r border-sidebar-border bg-sidebar md:flex">
         <div className="flex items-center gap-2 px-5 py-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -151,10 +122,10 @@ function ChatPage() {
         </div>
         <div className="mt-4 flex-1 overflow-y-auto px-2">
           <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Recent</div>
-          {Array.isArray(threadsQ.data) && threadsQ.data.length === 0 && (
+          {threads.length === 0 && (
             <p className="px-3 py-4 text-sm text-muted-foreground">No chats yet.</p>
           )}
-          {(Array.isArray(threadsQ.data) ? threadsQ.data : []).map((t) => (
+          {threads.map((t) => (
             <button
               key={t.id}
               onClick={() => setActiveId(t.id)}
@@ -177,15 +148,8 @@ function ChatPage() {
             </button>
           ))}
         </div>
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 truncate px-2 text-xs text-muted-foreground">{user.email}</div>
-          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
-          </Button>
-        </div>
       </aside>
 
-      {/* Main */}
       <main className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
           <div className="inline-flex rounded-full border border-border bg-card p-1">
@@ -196,16 +160,11 @@ function ChatPage() {
               Recipe
             </ModeBtn>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="md:hidden">
-            <LogOut className="h-4 w-4" />
-          </Button>
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-3xl px-4 py-8">
-            {loadingMessages ? (
-              <div className="flex justify-center py-20"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-            ) : messages.length === 0 ? (
+            {messages.length === 0 ? (
               <Empty mode={mode} onPick={send} />
             ) : (
               <div className="space-y-6">

@@ -1,7 +1,6 @@
 import "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createClient } from "@supabase/supabase-js";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway";
 
 const SYSTEMS: Record<string, string> = {
@@ -27,24 +26,11 @@ export const Route = createFileRoute("/api/chat")({
         const body = (await request.json()) as {
           messages?: UIMessage[];
           mode?: "plan" | "recipe";
-          threadId?: string;
         };
         if (!Array.isArray(body.messages)) return new Response("messages required", { status: 400 });
 
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
-
-        const authHeader = request.headers.get("authorization");
-        const token = authHeader?.replace("Bearer ", "");
-        if (!token) return new Response("Unauthorized", { status: 401 });
-
-        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-          global: { headers: { Authorization: `Bearer ${token}` } },
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-        const { data: claimsRes, error: claimsErr } = await supabase.auth.getClaims(token);
-        if (claimsErr || !claimsRes?.claims?.sub) return new Response("Unauthorized", { status: 401 });
-        const userId = claimsRes.claims.sub as string;
 
         const gateway = createLovableAiGatewayProvider(apiKey);
         const model = gateway("google/gemini-3-flash-preview");
@@ -56,47 +42,7 @@ export const Route = createFileRoute("/api/chat")({
           messages: await convertToModelMessages(body.messages),
         });
 
-        const userMessages = body.messages;
-        return result.toUIMessageStreamResponse({
-          originalMessages: userMessages,
-          onFinish: async ({ messages }) => {
-            if (!body.threadId) return;
-            try {
-              const last = messages[messages.length - 1];
-              const userMsg = userMessages[userMessages.length - 1];
-              if (userMsg?.role === "user") {
-                await supabase.from("chat_messages").insert({
-                  thread_id: body.threadId,
-                  user_id: userId,
-                  role: "user",
-                  parts: userMsg.parts as unknown as object,
-                });
-              }
-              if (last?.role === "assistant") {
-                await supabase.from("chat_messages").insert({
-                  thread_id: body.threadId,
-                  user_id: userId,
-                  role: "assistant",
-                  parts: last.parts as unknown as object,
-                });
-                // auto-title from first user message
-                const text = (userMsg?.parts ?? [])
-                  .map((p) => (p.type === "text" ? (p as { text: string }).text : ""))
-                  .join(" ")
-                  .slice(0, 60);
-                if (text) {
-                  await supabase
-                    .from("chat_threads")
-                    .update({ title: text })
-                    .eq("id", body.threadId)
-                    .eq("title", "New chat");
-                }
-              }
-            } catch (e) {
-              console.error("persist error", e);
-            }
-          },
-        });
+        return result.toUIMessageStreamResponse({ originalMessages: body.messages });
       },
     },
   },
