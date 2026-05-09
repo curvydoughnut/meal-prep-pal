@@ -56,13 +56,14 @@ export const Route = createFileRoute("/api/chat")({
           messages: await convertToModelMessages(body.messages),
         });
 
+        const userMessages = body.messages;
         return result.toUIMessageStreamResponse({
-          originalMessages: body.messages,
+          originalMessages: userMessages,
           onFinish: async ({ messages }) => {
             if (!body.threadId) return;
             try {
               const last = messages[messages.length - 1];
-              const userMsg = body.messages[body.messages.length - 1];
+              const userMsg = userMessages[userMessages.length - 1];
               if (userMsg?.role === "user") {
                 await supabase.from("chat_messages").insert({
                   thread_id: body.threadId,
