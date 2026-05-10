@@ -16,6 +16,7 @@ import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as GroceryListsRouteImport } from './routes/grocery-lists'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiHelpRouteImport } from './routes/api/help'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const WeeklyPlansRoute = WeeklyPlansRouteImport.update({
@@ -53,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHelpRoute = ApiHelpRouteImport.update({
+  id: '/api/help',
+  path: '/api/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/help': typeof ApiHelpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/help': typeof ApiHelpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/recipes': typeof RecipesRoute
   '/weekly-plans': typeof WeeklyPlansRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/help': typeof ApiHelpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/weekly-plans'
     | '/api/chat'
+    | '/api/help'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/weekly-plans'
     | '/api/chat'
+    | '/api/help'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/weekly-plans'
     | '/api/chat'
+    | '/api/help'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   RecipesRoute: typeof RecipesRoute
   WeeklyPlansRoute: typeof WeeklyPlansRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiHelpRoute: typeof ApiHelpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/help': {
+      id: '/api/help'
+      path: '/api/help'
+      fullPath: '/api/help'
+      preLoaderRoute: typeof ApiHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -204,7 +224,18 @@ const rootRouteChildren: RootRouteChildren = {
   RecipesRoute: RecipesRoute,
   WeeklyPlansRoute: WeeklyPlansRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiHelpRoute: ApiHelpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
