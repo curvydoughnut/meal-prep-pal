@@ -21,6 +21,15 @@ import kidSliders from "@/assets/recipes/kid-sliders.jpg";
 import kidNuggets from "@/assets/recipes/kid-nuggets.jpg";
 import kidPancakes from "@/assets/recipes/kid-pancakes.jpg";
 import kidAntsLog from "@/assets/recipes/kid-ants-log.jpg";
+import asianStirfry from "@/assets/recipes/asian-stirfry.jpg";
+import asianPho from "@/assets/recipes/asian-pho.jpg";
+import indianTikka from "@/assets/recipes/indian-tikka.jpg";
+import indianChana from "@/assets/recipes/indian-chana.jpg";
+import italianCapresePasta from "@/assets/recipes/italian-caprese-pasta.jpg";
+import italianChickenParm from "@/assets/recipes/italian-chicken-parm.jpg";
+import seafoodShrimpPasta from "@/assets/recipes/seafood-shrimp-pasta.jpg";
+import seafoodMisoCod from "@/assets/recipes/seafood-miso-cod.jpg";
+import seafoodTunaPoke from "@/assets/recipes/seafood-tuna-poke.jpg";
 
 export const Route = createFileRoute("/recipe-ideas")({
   component: RecipeIdeasPage,
@@ -34,7 +43,7 @@ export const Route = createFileRoute("/recipe-ideas")({
   }),
 });
 
-type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory" | "Kid-friendly";
+type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory" | "Kid-friendly" | "Asian" | "Indian" | "Italian";
 
 type Meal = "All" | "Breakfast" | "Lunch" | "Dinner" | "Snack";
 
@@ -68,9 +77,18 @@ const RECIPES: Recipe[] = [
   { title: "Baked Chicken Nuggets", diet: "Kid-friendly", meal: "Dinner", desc: "Crispy oven-baked nuggets with sweet potato fries.", time: "30 min", kcal: "420 kcal", image: kidNuggets, prompt: "Step-by-step kid-friendly baked chicken nuggets recipe with sweet potato fries — 4 servings." },
   { title: "Banana Oat Pancakes", diet: "Kid-friendly", meal: "Breakfast", desc: "Fluffy mini pancakes with banana, blueberries & maple.", time: "15 min", kcal: "290 kcal", image: kidPancakes, prompt: "Step-by-step kid-friendly mini banana oat pancakes recipe with maple syrup and blueberries — 2 kid servings." },
   { title: "Ants on a Log", diet: "Kid-friendly", meal: "Snack", desc: "Celery sticks, peanut butter, and raisins. Easy classic.", time: "5 min", kcal: "180 kcal", image: kidAntsLog, prompt: "Step-by-step kid-friendly ants on a log snack recipe with celery, peanut butter, and raisins — 2 kid servings." },
+  { title: "Beef & Broccoli Stir Fry", diet: "Asian", meal: "Dinner", desc: "Tender beef, broccoli, garlic-ginger sauce over jasmine rice.", time: "25 min", kcal: "510 kcal", image: asianStirfry, prompt: "Step-by-step Asian beef and broccoli stir fry recipe with garlic ginger sauce over jasmine rice — 4 servings." },
+  { title: "Chicken Pho Noodle Soup", diet: "Asian", meal: "Lunch", desc: "Vietnamese chicken pho with herbs, lime, bean sprouts.", time: "40 min", kcal: "440 kcal", image: asianPho, prompt: "Step-by-step Vietnamese chicken pho noodle soup recipe with herbs, lime, bean sprouts and jalapeno — 4 servings." },
+  { title: "Chicken Tikka Masala", diet: "Indian", meal: "Dinner", desc: "Creamy tomato curry with basmati rice and naan.", time: "45 min", kcal: "620 kcal", image: indianTikka, prompt: "Step-by-step Indian chicken tikka masala recipe with basmati rice and naan — 4 servings." },
+  { title: "Chana Masala", diet: "Indian", meal: "Dinner", desc: "Spiced chickpea curry with basmati rice and cilantro.", time: "30 min", kcal: "470 kcal", image: indianChana, prompt: "Step-by-step Indian chana masala chickpea curry recipe with basmati rice and cilantro — 4 servings." },
+  { title: "Caprese Spaghetti", diet: "Italian", meal: "Dinner", desc: "Cherry tomatoes, mozzarella pearls, basil, olive oil.", time: "20 min", kcal: "540 kcal", image: italianCapresePasta, prompt: "Step-by-step Italian caprese spaghetti recipe with cherry tomatoes, mozzarella pearls, fresh basil and olive oil — 4 servings." },
+  { title: "Sheet Pan Chicken Parmesan", diet: "Italian", meal: "Dinner", desc: "Crispy chicken, marinara, melty mozzarella, basil.", time: "35 min", kcal: "580 kcal", image: italianChickenParm, prompt: "Step-by-step Italian sheet pan chicken parmesan recipe with marinara, mozzarella and basil — 4 servings." },
+  { title: "Garlic Butter Shrimp Linguine", diet: "Pescatarian", meal: "Dinner", desc: "Buttery shrimp linguine with garlic, parsley, lemon.", time: "20 min", kcal: "520 kcal", image: seafoodShrimpPasta, prompt: "Step-by-step garlic butter shrimp linguine recipe with parsley and lemon — 2 servings." },
+  { title: "Miso Glazed Cod", diet: "Pescatarian", meal: "Dinner", desc: "Sweet miso cod with bok choy and jasmine rice.", time: "25 min", kcal: "460 kcal", image: seafoodMisoCod, prompt: "Step-by-step miso glazed cod recipe with steamed bok choy and jasmine rice — 2 servings." },
+  { title: "Tuna Mango Poke Bowl", diet: "Pescatarian", meal: "Lunch", desc: "Sushi-grade tuna, sushi rice, edamame, avocado, mango.", time: "20 min", kcal: "490 kcal", image: seafoodTunaPoke, prompt: "Step-by-step tuna poke bowl recipe with sushi rice, edamame, avocado, cucumber, mango and sesame — 2 servings." },
 ];
 
-const DIETS: Diet[] = ["All", "Kid-friendly", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian", "Anti-inflammatory"];
+const DIETS: Diet[] = ["All", "Kid-friendly", "Asian", "Indian", "Italian", "Mediterranean", "Pescatarian", "High-protein", "Vegan", "Vegetarian", "Keto", "Gluten-free", "Paleo", "Anti-inflammatory"];
 const MEALS: Meal[] = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];
 
 function RecipeIdeasPage() {
