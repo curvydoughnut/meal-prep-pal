@@ -1,17 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ChefHat, ListChecks, Salad, Sparkles, BookOpen, LifeBuoy } from "lucide-react";
-import { toast } from "sonner";
+import { ChefHat, ListChecks, Salad, Sparkles, BookOpen, HelpCircle } from "lucide-react";
 
 export const Route = createFileRoute("/how-it-works")({
   component: HowItWorks,
@@ -95,39 +90,6 @@ const FAQS = [
 ];
 
 function HowItWorks() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) {
-      toast.error("Please describe what you need help with.");
-      return;
-    }
-    setSubmitting(true);
-    // Local-only submission for now — store as a draft so the user has a record.
-    try {
-      const drafts = JSON.parse(localStorage.getItem("preppal:help:v1") || "[]");
-      drafts.push({
-        name: name.trim(),
-        email: email.trim(),
-        message: message.trim(),
-        at: new Date().toISOString(),
-      });
-      localStorage.setItem("preppal:help:v1", JSON.stringify(drafts));
-      toast.success("Thanks! Your help request was sent.");
-      setName("");
-      setEmail("");
-      setMessage("");
-    } catch {
-      toast.error("Something went wrong. Try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[image:var(--gradient-warm)]">
       <header className="container mx-auto flex items-center justify-between px-6 py-5">
@@ -195,57 +157,17 @@ function HowItWorks() {
 
       <section className="container mx-auto max-w-3xl px-6 pb-24">
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">
-              <LifeBuoy className="h-5 w-5" />
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[var(--shadow-glow)]">
+              <HelpCircle className="h-6 w-6" />
             </div>
-            <div>
+            <div className="flex-1">
               <h2 className="text-xl font-semibold">Still need help?</h2>
-              <p className="text-sm text-muted-foreground">
-                Send us a note and we'll get back to you.
+              <p className="mt-1 text-sm text-muted-foreground">
+                Tap the <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium text-foreground"><HelpCircle className="h-3 w-3" />?</span> button in the bottom-right corner anytime to chat with the PrepPal assistant.
               </p>
             </div>
           </div>
-
-          <form onSubmit={onSubmit} className="mt-6 grid gap-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Your name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Alex"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="message">How can we help?</Label>
-              <Textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Tell us what's going wrong or what you'd like to do…"
-                rows={5}
-                required
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Sending…" : "Send help request"}
-              </Button>
-            </div>
-          </form>
         </div>
       </section>
     </div>
