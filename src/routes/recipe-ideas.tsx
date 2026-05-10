@@ -17,6 +17,10 @@ import breakfastScramble from "@/assets/recipes/breakfast-scramble.jpg";
 import breakfastParfait from "@/assets/recipes/breakfast-parfait.jpg";
 import snackAppleAlmond from "@/assets/recipes/snack-apple-almond.jpg";
 import snackEnergyBalls from "@/assets/recipes/snack-energy-balls.jpg";
+import kidSliders from "@/assets/recipes/kid-sliders.jpg";
+import kidNuggets from "@/assets/recipes/kid-nuggets.jpg";
+import kidPancakes from "@/assets/recipes/kid-pancakes.jpg";
+import kidAntsLog from "@/assets/recipes/kid-ants-log.jpg";
 
 export const Route = createFileRoute("/recipe-ideas")({
   component: RecipeIdeasPage,
@@ -30,7 +34,7 @@ export const Route = createFileRoute("/recipe-ideas")({
   }),
 });
 
-type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory";
+type Diet = "All" | "High-protein" | "Vegan" | "Vegetarian" | "Keto" | "Mediterranean" | "Gluten-free" | "Paleo" | "Pescatarian" | "Anti-inflammatory" | "Kid-friendly";
 
 type Meal = "All" | "Breakfast" | "Lunch" | "Dinner" | "Snack";
 
@@ -60,9 +64,13 @@ const RECIPES: Recipe[] = [
   { title: "Greek Yogurt Berry Parfait", diet: "High-protein", meal: "Breakfast", desc: "Greek yogurt, granola, strawberries, blueberries, honey.", time: "5 min", kcal: "320 kcal", image: breakfastParfait, prompt: "Step-by-step high-protein Greek yogurt parfait recipe with granola, strawberries, blueberries, and honey — 1 serving." },
   { title: "Apple & Almond Butter", diet: "Vegan", meal: "Snack", desc: "Crisp apple slices with almond butter and cinnamon.", time: "5 min", kcal: "210 kcal", image: snackAppleAlmond, prompt: "Step-by-step vegan apple and almond butter snack recipe with cinnamon — 1 serving." },
   { title: "No-Bake Energy Balls", diet: "Vegetarian", meal: "Snack", desc: "Oats, peanut butter, dark chocolate, chia seeds.", time: "15 min", kcal: "150 kcal", image: snackEnergyBalls, prompt: "Step-by-step no-bake protein energy balls recipe with oats, peanut butter, dark chocolate chips, and chia seeds — makes 12." },
+  { title: "Mini Turkey Cheese Sliders", diet: "Kid-friendly", meal: "Lunch", desc: "Soft buns, lean turkey, melty cheese, carrot & cucumber sides.", time: "20 min", kcal: "360 kcal", image: kidSliders, prompt: "Step-by-step kid-friendly mini turkey cheese sliders recipe with whole wheat buns, carrot sticks and cucumber slices — 4 servings." },
+  { title: "Baked Chicken Nuggets", diet: "Kid-friendly", meal: "Dinner", desc: "Crispy oven-baked nuggets with sweet potato fries.", time: "30 min", kcal: "420 kcal", image: kidNuggets, prompt: "Step-by-step kid-friendly baked chicken nuggets recipe with sweet potato fries — 4 servings." },
+  { title: "Banana Oat Pancakes", diet: "Kid-friendly", meal: "Breakfast", desc: "Fluffy mini pancakes with banana, blueberries & maple.", time: "15 min", kcal: "290 kcal", image: kidPancakes, prompt: "Step-by-step kid-friendly mini banana oat pancakes recipe with maple syrup and blueberries — 2 kid servings." },
+  { title: "Ants on a Log", diet: "Kid-friendly", meal: "Snack", desc: "Celery sticks, peanut butter, and raisins. Easy classic.", time: "5 min", kcal: "180 kcal", image: kidAntsLog, prompt: "Step-by-step kid-friendly ants on a log snack recipe with celery, peanut butter, and raisins — 2 kid servings." },
 ];
 
-const DIETS: Diet[] = ["All", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian", "Anti-inflammatory"];
+const DIETS: Diet[] = ["All", "Kid-friendly", "High-protein", "Vegan", "Vegetarian", "Keto", "Mediterranean", "Gluten-free", "Paleo", "Pescatarian", "Anti-inflammatory"];
 const MEALS: Meal[] = ["All", "Breakfast", "Lunch", "Dinner", "Snack"];
 
 function RecipeIdeasPage() {
